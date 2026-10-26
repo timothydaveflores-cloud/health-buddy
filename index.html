@@ -13,6 +13,14 @@
       transform: rotate(-90deg);
       transform-origin: 50% 50%;
     }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .exercise-anim {
+      animation: pulseRing 2.5s infinite ease-in-out;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 antialiased min-h-screen pb-20">
@@ -22,7 +30,7 @@
     <div id="alarmPopup" class="hidden bg-rose-600 border border-rose-500 text-white p-4 rounded-xl shadow-2xl flex items-center justify-between animate-bounce">
       <div>
         <p class="font-extrabold text-sm" id="alarmTitle">⏰ REMINDER ALERT</p>
-        <p class="text-xs text-rose-100 mt-0.5" id="alarmSubtitle">School dismissal soon</p>
+        <p class="text-xs text-rose-100 mt-0.5" id="alarmSubtitle">Scheduled notification</p>
       </div>
       <button onclick="dismissAlarm()" class="bg-white text-rose-700 font-bold text-xs px-3 py-1.5 rounded-lg shadow">
         Dismiss
@@ -33,7 +41,7 @@
     <header class="flex justify-between items-center border-b border-slate-800 pb-3">
       <div>
         <h1 class="text-xl font-bold tracking-tight text-white">Health Buddy</h1>
-        <p class="text-xs text-slate-400">Shift Fasting • Calorie Tracker • Reminders</p>
+        <p class="text-xs text-slate-400">Shift Fasting • Calorie Balance • Voice Alarms</p>
       </div>
       <div class="flex items-center space-x-2">
         <button onclick="requestNotificationAccess()" id="notifBtn" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-2 py-1 rounded">
@@ -54,14 +62,61 @@
       <span id="bannerBadge" class="text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-300">Active</span>
     </div>
 
-    <!-- Daily Reminders & Alarms Section -->
+    <!-- Scheduled Reminders & Calendar Alarms -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Scheduled Reminders</h2>
-          <p class="text-[10px] text-slate-500">Auto chimes & notifications</p>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Scheduled Reminders & Alarms</h2>
+          <p class="text-[10px] text-slate-500">Daily, Weekdays & Future Date alerts</p>
         </div>
-        <button onclick="addNewReminderPrompt()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">+ Add Alert</button>
+        <button onclick="toggleReminderForm()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">+ Add Alert</button>
+      </div>
+
+      <!-- Expandable Add Reminder Form with Voice Mic -->
+      <div id="addReminderForm" class="hidden bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Reminder Title</label>
+          <div class="flex items-center space-x-1.5">
+            <input type="text" id="reminderLabelInput" placeholder="e.g. Pick up daughter at school" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none focus:border-amber-500" />
+            <button type="button" id="reminderLabelMicBtn" onclick="startDictation('reminderLabelInput')" title="Speak reminder title" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700">
+              🎙️
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Frequency</label>
+            <select id="reminderTypeSelect" onchange="toggleDateSelector()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <option value="weekday">Mon–Fri (Weekdays)</option>
+              <option value="daily">Everyday</option>
+              <option value="future">Specific Future Date</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Alarm Time</label>
+            <input type="time" id="reminderTimeInput" value="15:30" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
+          </div>
+        </div>
+
+        <div id="futureDateContainer" class="hidden">
+          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Calendar Date</label>
+          <input type="date" id="reminderDateInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Notes / Subtitle</label>
+          <input type="text" id="reminderNoteInput" placeholder="e.g. Dismissal 4:00 PM (30 min early)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button onclick="saveNewReminder()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition">
+            Save Reminder
+          </button>
+          <button onclick="toggleReminderForm()" class="bg-slate-800 text-slate-400 px-3 py-2 rounded-lg hover:text-white">
+            Cancel
+          </button>
+        </div>
       </div>
 
       <div id="remindersList" class="space-y-2">
@@ -128,7 +183,6 @@
 
     <!-- 1-Tap Daily Habit Trackers -->
     <div class="grid grid-cols-2 gap-3">
-      <!-- 6:00 AM Walk with Wife -->
       <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-2xl">🌅</span>
@@ -145,7 +199,6 @@
         </div>
       </div>
 
-      <!-- Water Intake -->
       <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-2xl">💧</span>
@@ -162,34 +215,49 @@
       </div>
     </div>
 
-    <!-- Movement Generator (With Twister Arm Exercises) -->
+    <!-- Movement Break Generator with Visual Guideline & Safety Checklist -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-sm font-bold text-white">Desk Break & Arm Twister</h2>
+          <h2 class="text-sm font-bold text-white">Desk Break & Movement Guide</h2>
           <span id="exerciseCategoryBadge" class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Zone: Equipment / Chest</span>
         </div>
         <button onclick="cycleExercise()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
-          🔄 Next
+          🔄 Next Exercise
         </button>
       </div>
 
-      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center space-x-2">
-              <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Twister Chest Squeezes</p>
-              <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~8 kcal</span>
+      <!-- Main Visual Guideline Card -->
+      <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center space-x-3">
+            <!-- Animated Graphic Container -->
+            <div id="exerciseVisualIcon" class="w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-2 text-2xl exercise-anim">
+              ⚡
             </div>
-            <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5">Hold handles at chest height, compress bars inward, hold 2s.</p>
+            <div>
+              <div class="flex items-center space-x-2">
+                <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Twister Chest Squeezes</p>
+                <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~8 kcal</span>
+              </div>
+              <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5 leading-snug">Hold handles at chest height, slowly compress inward, hold 2s.</p>
+            </div>
           </div>
-          <button onclick="completeCurrentExercise()" class="ml-3 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-lg">
+          <button onclick="completeCurrentExercise()" class="ml-2 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow">
             ✓ Done
           </button>
         </div>
 
-        <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-          <span class="text-slate-500">Joint comfort:</span>
+        <!-- 3-Point Joint Safety Form Checklist -->
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-[11px] space-y-1">
+          <p class="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Proper Form & Safety Cues:</p>
+          <ul id="exerciseSafetyCues" class="text-slate-400 space-y-0.5 list-disc list-inside">
+            <!-- Populated dynamically -->
+          </ul>
+        </div>
+
+        <div class="pt-1 flex items-center justify-between text-[11px]">
+          <span class="text-slate-500">Joint check:</span>
           <button onclick="flagJointIssue()" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-rose-950 hover:text-rose-300 text-slate-400 border border-slate-800">
             ⚠️ Knees/Joints Tender
           </button>
@@ -209,27 +277,31 @@
       </div>
     </div>
 
-    <!-- 3-in-1 Hybrid Nutrition Engine -->
+    <!-- 3-in-1 Hybrid Nutrition Engine with Voice Dictation 🎙️ -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <h2 class="text-sm font-bold text-white">Smart Meal & Nutrition Logger</h2>
-        <span class="text-[10px] text-slate-500">Auto-Detect • Override • Editable</span>
+        <span class="text-[10px] text-slate-500">Voice Dictation • Auto Range</span>
       </div>
 
       <div class="space-y-2">
-        <input type="text" id="mealInput" oninput="liveEstimateMeal()" placeholder="e.g. 6 pcs japanese siomai, 1 cup rice, 2 eggs" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
-        
-        <!-- Editable Override Numbers -->
+        <div class="flex items-center space-x-1.5">
+          <input type="text" id="mealInput" oninput="liveEstimateMeal()" placeholder="e.g. 6 pcs japanese siomai, 1 cup rice, 2 eggs" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
+          <button type="button" id="mealInputMicBtn" onclick="startDictation('mealInput', liveEstimateMeal)" title="Speak meal description" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2.5 rounded-lg border border-slate-700 text-sm">
+            🎙️
+          </button>
+        </div>
+
         <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-xs">
           <div>
-            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Edit if needed):</label>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Editable):</label>
             <div class="flex items-center">
               <input type="number" id="mealKcalInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 font-bold outline-none" />
               <span class="ml-1 text-[11px] text-slate-500">kcal</span>
             </div>
           </div>
           <div>
-            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Protein (Edit if needed):</label>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Protein (Editable):</label>
             <div class="flex items-center">
               <input type="number" id="mealProteinInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-400 font-bold outline-none" />
               <span class="ml-1 text-[11px] text-slate-500">g</span>
@@ -251,7 +323,7 @@
 
   <script>
     // ----------------------------------------------------
-    // 1. Firebase Config & Initialization
+    // 1. Firebase Initialization & Live Sync
     // ----------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyBM2y_QgQ_g5emihqT26zG17ElAJrSKBFc",
@@ -270,14 +342,92 @@
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
     const BASE_SEDENTARY_TDEE = 2650;
 
-    // Exercise Database
+    // Movement Database with Visual Form Cues
     const exercisePool = [
-      { category: "Equipment / Chest", name: "12 Twister Chest Squeezes", desc: "Hold handles at chest height, compress bars inward, hold 2s.", reps: 12, unit: "Twister Squeezes", kcal: 8 },
-      { category: "Equipment / Arms", name: "15 Twister Forearm & Arm Flexes", desc: "Hold twister low, squeeze to work biceps and forearms.", reps: 15, unit: "Twister Flexes", kcal: 6 },
-      { category: "Lower Body", name: "10 Chair Box Squats", desc: "Sit fully in office chair, pause 1s, stand tall without hands.", reps: 10, unit: "Squats", kcal: 6 },
-      { category: "Upper Body", name: "12 Desk Push-ups", desc: "Palms on desk edge at an angle. Zero wrist floor strain.", reps: 12, unit: "Push-ups", kcal: 4 },
-      { category: "Posture & Core", name: "20 Seated Knee Raises", desc: "Sit tall, pull alternating knees to chest. Zero spinal pressure.", reps: 20, unit: "Knee Raises", kcal: 5 },
-      { category: "Slump Buster", name: "15 Standing Calf Raises", desc: "Hands on chair back, lift heels high.", reps: 15, unit: "Calf Raises", kcal: 4 }
+      {
+        category: "Equipment / Chest",
+        name: "12 Twister Chest Squeezes",
+        desc: "Hold handles at chest height, compress bars inward, hold 2s.",
+        reps: 12,
+        unit: "Twister Squeezes",
+        kcal: 8,
+        icon: "💪",
+        cues: [
+          "Keep elbows up parallel to the floor (do not drop into ribs).",
+          "Compress inward smoothly; pause and hold squeeze for 2 seconds.",
+          "Keep lower back pressed against chair; breathe out on compression."
+        ]
+      },
+      {
+        category: "Equipment / Arms",
+        name: "15 Twister Forearm & Arm Flexes",
+        desc: "Hold twister low or vertically, squeeze to work biceps and forearms.",
+        reps: 15,
+        unit: "Twister Flexes",
+        kcal: 6,
+        icon: "🦾",
+        cues: [
+          "Keep wrists straight to prevent tendon strain.",
+          "Squeeze handles with full grip before initiating the bend.",
+          "Slow 3-second negative return on every repetition."
+        ]
+      },
+      {
+        category: "Lower Body",
+        name: "10 Chair Box Squats",
+        desc: "Sit fully in office chair, pause 1s, stand tall without hands.",
+        reps: 10,
+        unit: "Squats",
+        kcal: 6,
+        icon: "🪑",
+        cues: [
+          "Push hips backward first as if reaching for the back of the seat.",
+          "Keep knees behind toes to remove patellar knee pressure.",
+          "Pause fully on the chair for 1 second before driving through heels."
+        ]
+      },
+      {
+        category: "Upper Body",
+        name: "12 Desk Push-ups",
+        desc: "Palms on desk edge at an angle. Zero wrist floor strain.",
+        reps: 12,
+        unit: "Push-ups",
+        kcal: 4,
+        icon: "🖥️",
+        cues: [
+          "Hands shoulder-width apart on sturdy desk edge.",
+          "Maintain a straight plank line from shoulders to heels.",
+          "Lower chest smoothly to desk without arching your neck."
+        ]
+      },
+      {
+        category: "Posture & Core",
+        name: "20 Seated Knee Raises",
+        desc: "Sit tall, pull alternating knees to chest. Zero spinal pressure.",
+        reps: 20,
+        unit: "Knee Raises",
+        kcal: 5,
+        icon: "🦵",
+        cues: [
+          "Sit tall on edge of chair with shoulders rolled back.",
+          "Lift knee toward chest using lower abdominal muscles.",
+          "Pause 1 second at top; do not lean backward."
+        ]
+      },
+      {
+        category: "Slump Buster",
+        name: "15 Standing Calf Raises",
+        desc: "Hands on chair back, lift heels high.",
+        reps: 15,
+        unit: "Calf Raises",
+        kcal: 4,
+        icon: "🦶",
+        cues: [
+          "Keep fingertips on chair back purely for balance.",
+          "Drive straight up onto balls of feet; hold peak for 1 second.",
+          "Pumps pooled venous blood from legs back to heart."
+        ]
+      }
     ];
 
     let currentPoolIndex = 0;
@@ -292,7 +442,7 @@
       exerciseLogs: [],
       meals: [],
       reminders: [
-        { id: 1, label: "Pick up daughter at school", time: "15:30", note: "School dismissal at 4:00 PM (30m reminder)", weekdaysOnly: true, alertedToday: false }
+        { id: 1, label: "Pick up daughter at school", type: "weekday", time: "15:30", note: "Dismissal 4:00 PM (30 min early)", date: "", alertedToday: false }
       ]
     };
 
@@ -328,15 +478,50 @@
     }
 
     // ----------------------------------------------------
-    // 2. Smart Filipino Food & Quantity Parser Engine
+    // 2. Painless Voice Dictation (🎙️ Web Speech API)
+    // ----------------------------------------------------
+    function startDictation(targetInputId, callback) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Speech recognition is not supported on this browser. Try Google Chrome or Safari.");
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-PH'; // Optimized for English / Taglish
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      const micBtn = document.getElementById(targetInputId + 'MicBtn');
+      if (micBtn) {
+        micBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
+      }
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const input = document.getElementById(targetInputId);
+        input.value = transcript;
+        if (callback) callback();
+      };
+
+      recognition.onerror = () => {
+        if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse');
+      };
+
+      recognition.onend = () => {
+        if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse');
+      };
+
+      recognition.start();
+    }
+
+    // ----------------------------------------------------
+    // 3. Smart Filipino Food & Quantity Parser
     // ----------------------------------------------------
     function parseQuantity(text, keyword) {
-      // Look for numbers preceding or succeeding the keyword (e.g. "6 pcs siomai", "6 siomai", "siomai 6")
       const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
       const match = text.match(regex);
-      if (match) {
-        return parseInt(match[1] || match[2], 10);
-      }
+      if (match) return parseInt(match[1] || match[2], 10);
       return text.toLowerCase().includes(keyword) ? 1 : 0;
     }
 
@@ -352,15 +537,13 @@
       let protein = 0;
       let matched = false;
 
-      // Siomai: 46 kcal & 2.3g protein per piece
       const siomaiQty = parseQuantity(text, 'siomai') || parseQuantity(text, 'shumai');
       if (siomaiQty > 0) {
-        kcal += siomaiQty * 46; // e.g. 6 pcs = 276 kcal
+        kcal += siomaiQty * 46;
         protein += siomaiQty * 2.3;
         matched = true;
       }
 
-      // Rice: 205 kcal & 4g protein per cup
       const riceQty = parseQuantity(text, 'rice') || parseQuantity(text, 'kanin');
       if (riceQty > 0) {
         kcal += riceQty * 205;
@@ -368,7 +551,6 @@
         matched = true;
       }
 
-      // Egg: 75 kcal & 6g protein each
       const eggQty = parseQuantity(text, 'egg') || parseQuantity(text, 'itlog');
       if (eggQty > 0) {
         kcal += eggQty * 75;
@@ -376,45 +558,16 @@
         matched = true;
       }
 
-      // Corned Beef: ~220 kcal & 14g protein per serving
-      if (text.includes('corned beef')) {
-        kcal += 220;
-        protein += 14;
-        matched = true;
-      }
+      if (text.includes('corned beef')) { kcal += 220; protein += 14; matched = true; }
+      if (text.includes('chicken') || text.includes('manok')) { kcal += 260; protein += 26; matched = true; }
+      if (text.includes('pork') || text.includes('baboy') || text.includes('liempo')) { kcal += 320; protein += 22; matched = true; }
 
-      // Chicken Breast / Thigh
-      if (text.includes('chicken') || text.includes('manok')) {
-        kcal += 260;
-        protein += 26;
-        matched = true;
-      }
-
-      // Pork Chop / Adobo / Belly
-      if (text.includes('pork') || text.includes('baboy') || text.includes('liempo')) {
-        kcal += 320;
-        protein += 22;
-        matched = true;
-      }
-
-      // Hotdog: ~140 kcal each
       const hotdogQty = parseQuantity(text, 'hotdog');
-      if (hotdogQty > 0) {
-        kcal += hotdogQty * 140;
-        protein += hotdogQty * 5;
-        matched = true;
-      }
+      if (hotdogQty > 0) { kcal += hotdogQty * 140; protein += hotdogQty * 5; matched = true; }
 
-      // Chili oil addon: ~100 kcal
-      if (text.includes('chili oil') || text.includes('chili garlic')) {
-        kcal += 90;
-      }
+      if (text.includes('chili oil') || text.includes('chili garlic')) kcal += 90;
 
-      // Fallback if dish not in quick dictionary
-      if (!matched) {
-        kcal = 400;
-        protein = 18;
-      }
+      if (!matched) { kcal = 400; protein = 18; }
 
       document.getElementById('mealKcalInput').value = Math.round(kcal);
       document.getElementById('mealProteinInput').value = Math.round(protein);
@@ -450,18 +603,123 @@
     }
 
     // ----------------------------------------------------
-    // 3. Timed Reminders & Audio Alarms Engine
+    // 4. Timed Reminders, Future Date & Phone Calendar Sync
     // ----------------------------------------------------
+    function toggleReminderForm() {
+      const form = document.getElementById('addReminderForm');
+      form.classList.toggle('hidden');
+    }
+
+    function toggleDateSelector() {
+      const type = document.getElementById('reminderTypeSelect').value;
+      const dateBox = document.getElementById('futureDateContainer');
+      if (type === 'future') {
+        dateBox.classList.remove('hidden');
+      } else {
+        dateBox.classList.add('hidden');
+      }
+    }
+
+    function saveNewReminder() {
+      const label = document.getElementById('reminderLabelInput').value.trim();
+      const type = document.getElementById('reminderTypeSelect').value;
+      const time = document.getElementById('reminderTimeInput').value;
+      const date = document.getElementById('reminderDateInput').value;
+      const note = document.getElementById('reminderNoteInput').value.trim();
+
+      if (!label || !time) {
+        alert("Please enter a reminder title and time.");
+        return;
+      }
+
+      if (type === 'future' && !date) {
+        alert("Please select a specific date for this reminder.");
+        return;
+      }
+
+      if (!appData.reminders) appData.reminders = [];
+      appData.reminders.push({
+        id: Date.now(),
+        label,
+        type,
+        time,
+        date: type === 'future' ? date : '',
+        note,
+        alertedToday: false
+      });
+
+      pushUpdate();
+      toggleReminderForm();
+
+      // Reset form
+      document.getElementById('reminderLabelInput').value = '';
+      document.getElementById('reminderNoteInput').value = '';
+      document.getElementById('reminderDateInput').value = '';
+    }
+
+    function deleteReminder(id) {
+      if (!confirm("Delete this reminder?")) return;
+      appData.reminders = appData.reminders.filter(r => r.id !== id);
+      pushUpdate();
+      renderReminders();
+    }
+
+    // Export .ics calendar file so phone native alarm rings
+    function addToPhoneCalendar(id) {
+      const r = (appData.reminders || []).find(item => item.id === id);
+      if (!r) return;
+
+      const [hours, minutes] = r.time.split(':');
+      let targetDate = new Date();
+
+      if (r.type === 'future' && r.date) {
+        const [y, m, d] = r.date.split('-');
+        targetDate = new Date(y, m - 1, d);
+      }
+      targetDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
+
+      const startISO = targetDate.toISOString().replace(/-|:|\.\d+/g, '');
+      const endDate = new Date(targetDate.getTime() + 30 * 60000);
+      const endISO = endDate.toISOString().replace(/-|:|\.\d+/g, '');
+
+      const icsData = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Health Buddy//EN',
+        'BEGIN:VEVENT',
+        `SUMMARY:${r.label}`,
+        `DESCRIPTION:${r.note || 'Health Buddy Reminder'}`,
+        `DTSTART:${startISO}`,
+        `DTEND:${endISO}`,
+        'BEGIN:VALARM',
+        'TRIGGER:-PT15M',
+        'ACTION:DISPLAY',
+        'DESCRIPTION:Reminder',
+        'END:VALARM',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', `${r.label.replace(/\s+/g, '_')}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
     function checkReminders() {
       const now = new Date();
       const currentHours = String(now.getHours()).padStart(2, '0');
       const currentMinutes = String(now.getMinutes()).padStart(2, '0');
       const currentTimeStr = `${currentHours}:${currentMinutes}`;
+      const currentDateStr = now.toISOString().slice(0, 10);
       const day = now.getDay(); // 0 = Sun, 6 = Sat
 
       (appData.reminders || []).forEach(r => {
-        if (!r.active && r.active !== undefined) return;
-        if (r.weekdaysOnly && (day === 0 || day === 6)) return; // Skip on weekends
+        if (r.type === 'weekday' && (day === 0 || day === 6)) return;
+        if (r.type === 'future' && r.date !== currentDateStr) return;
 
         if (r.time === currentTimeStr && !r.alertedToday) {
           triggerAlarm(r);
@@ -469,7 +727,6 @@
           pushUpdate();
         }
 
-        // Reset alarm trigger at midnight
         if (currentTimeStr === "00:01") {
           r.alertedToday = false;
         }
@@ -480,12 +737,12 @@
       playLoudChime();
       const popup = document.getElementById('alarmPopup');
       document.getElementById('alarmTitle').textContent = `⏰ ${reminder.label}`;
-      document.getElementById('alarmSubtitle').textContent = reminder.note || `Time: ${reminder.time}`;
+      document.getElementById('alarmSubtitle').textContent = reminder.note || `Time: ${format12Hour(reminder.time)}`;
       popup.classList.remove('hidden');
 
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification(reminder.label, {
-          body: reminder.note || `Scheduled alert at ${reminder.time}`,
+          body: reminder.note || `Scheduled alert at ${format12Hour(reminder.time)}`,
           icon: "https://cdn-icons-png.flaticon.com/512/883/883256.png"
         });
       }
@@ -495,35 +752,6 @@
       document.getElementById('alarmPopup').classList.add('hidden');
     }
 
-    function addNewReminderPrompt() {
-      const label = prompt("Reminder name (e.g. Pick up daughter):");
-      if (!label) return;
-      const time = prompt("Alarm time in 24-hr format (e.g. 15:30 for 3:30 PM):", "15:30");
-      if (!time || !time.includes(":")) return;
-      const note = prompt("Notes (e.g. Dismissal 4:00 PM):", "");
-      const weekdays = confirm("Weekdays only (Monday to Friday)? Click OK for Weekdays, Cancel for Everyday.");
-
-      if (!appData.reminders) appData.reminders = [];
-      appData.reminders.push({
-        id: Date.now(),
-        label,
-        time,
-        note,
-        weekdaysOnly: weekdays,
-        alertedToday: false
-      });
-
-      pushUpdate();
-      renderReminders();
-    }
-
-    function deleteReminder(id) {
-      if (!confirm("Delete this reminder?")) return;
-      appData.reminders = appData.reminders.filter(r => r.id !== id);
-      pushUpdate();
-      renderReminders();
-    }
-
     function renderReminders() {
       const container = document.getElementById('remindersList');
       if (!appData.reminders || !appData.reminders.length) {
@@ -531,22 +759,34 @@
         return;
       }
 
-      container.innerHTML = appData.reminders.map(r => `
-        <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="font-mono text-amber-400 font-bold">${format12Hour(r.time)}</span>
-              <span class="font-semibold text-slate-200">${r.label}</span>
-              ${r.weekdaysOnly ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Mon–Fri</span>' : ''}
+      container.innerHTML = appData.reminders.map(r => {
+        let badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Mon–Fri</span>';
+        if (r.type === 'daily') badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">Daily</span>';
+        if (r.type === 'future') badge = `<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 border border-amber-800">📅 ${r.date}</span>`;
+
+        return `
+          <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-mono text-amber-400 font-bold">${format12Hour(r.time)}</span>
+                <span class="font-semibold text-slate-200">${r.label}</span>
+                ${badge}
+              </div>
+              ${r.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${r.note}</p>` : ''}
             </div>
-            ${r.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${r.note}</p>` : ''}
+            <div class="flex items-center space-x-1.5">
+              <button onclick="addToPhoneCalendar(${r.id})" title="Add to Native Phone Calendar" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-[10px] px-2 py-1 rounded border border-slate-700">
+                📅 Sync
+              </button>
+              <button onclick="deleteReminder(${r.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
+            </div>
           </div>
-          <button onclick="deleteReminder(${r.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function format12Hour(timeStr) {
+      if (!timeStr) return '';
       const [h, m] = timeStr.split(':');
       let hours = parseInt(h, 10);
       const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -561,8 +801,8 @@
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = "triangle";
-          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + (i * 0.25)); // E5
-          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + (i * 0.25) + 0.2); // A5
+          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + (i * 0.25));
+          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + (i * 0.25) + 0.2);
           gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (i * 0.25));
           gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.25) + 0.2);
           osc.connect(gain);
@@ -589,7 +829,56 @@
     }
 
     // ----------------------------------------------------
-    // 4. Movement, Fasting & Rest Day Handling
+    // 5. Movement Engine & Visual Guide
+    // ----------------------------------------------------
+    function cycleExercise() {
+      currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
+      updateExerciseCard();
+    }
+
+    function updateExerciseCard() {
+      const ex = exercisePool[currentPoolIndex];
+      document.getElementById('exerciseCategoryBadge').textContent = `Zone: ${ex.category}`;
+      document.getElementById('exerciseName').textContent = ex.name;
+      document.getElementById('exerciseDesc').textContent = ex.desc;
+      document.getElementById('exerciseBurnBadge').textContent = `~${ex.kcal} kcal`;
+      document.getElementById('exerciseVisualIcon').textContent = ex.icon;
+
+      const cueList = document.getElementById('exerciseSafetyCues');
+      cueList.innerHTML = ex.cues.map(c => `<li>${c}</li>`).join('');
+    }
+
+    function completeCurrentExercise() {
+      const ex = exercisePool[currentPoolIndex];
+      if (!appData.exerciseLogs) appData.exerciseLogs = [];
+
+      appData.exerciseLogs.unshift({
+        id: Date.now(),
+        name: ex.name,
+        category: ex.category,
+        reps: ex.reps,
+        unit: ex.unit,
+        kcal: ex.kcal,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      pushUpdate();
+      cycleExercise();
+    }
+
+    function flagJointIssue() {
+      alert("Prioritizing seated twister exercises and seated knee raises to keep your knees completely safe.");
+      currentPoolIndex = 0;
+      updateExerciseCard();
+    }
+
+    function deleteExerciseLog(id) {
+      appData.exerciseLogs = appData.exerciseLogs.filter(e => e.id !== id);
+      pushUpdate();
+    }
+
+    // ----------------------------------------------------
+    // 6. Fasting & Rest Day Engine
     // ----------------------------------------------------
     function isRestDay(now) {
       const day = now.getDay();
@@ -721,9 +1010,6 @@
       return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
 
-    // ----------------------------------------------------
-    // 5. Habits & Exercise
-    // ----------------------------------------------------
     function logWalk(duration, kcal) {
       appData.walkDone = true;
       appData.walkDuration = duration;
@@ -736,53 +1022,10 @@
       pushUpdate();
     }
 
-    function cycleExercise() {
-      currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
-      updateExerciseCard();
-    }
-
-    function updateExerciseCard() {
-      const ex = exercisePool[currentPoolIndex];
-      document.getElementById('exerciseCategoryBadge').textContent = `Zone: ${ex.category}`;
-      document.getElementById('exerciseName').textContent = ex.name;
-      document.getElementById('exerciseDesc').textContent = ex.desc;
-      document.getElementById('exerciseBurnBadge').textContent = `~${ex.kcal} kcal`;
-    }
-
-    function completeCurrentExercise() {
-      const ex = exercisePool[currentPoolIndex];
-      if (!appData.exerciseLogs) appData.exerciseLogs = [];
-
-      appData.exerciseLogs.unshift({
-        id: Date.now(),
-        name: ex.name,
-        category: ex.category,
-        reps: ex.reps,
-        unit: ex.unit,
-        kcal: ex.kcal,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      pushUpdate();
-      cycleExercise();
-    }
-
-    function flagJointIssue() {
-      alert("Prioritizing seated twister exercises and seated knee raises to keep your knees completely safe.");
-      currentPoolIndex = 0;
-      updateExerciseCard();
-    }
-
-    function deleteExerciseLog(id) {
-      appData.exerciseLogs = appData.exerciseLogs.filter(e => e.id !== id);
-      pushUpdate();
-    }
-
     // ----------------------------------------------------
-    // 6. Overall State Render
+    // 7. Caloric Balance & Overall State Render
     // ----------------------------------------------------
     function renderState() {
-      // Calorie Math
       let totalEaten = 0;
       (appData.meals || []).forEach(m => {
         totalEaten += (m.kcal || 0);
@@ -819,7 +1062,6 @@
         netLabel.className = "text-[9px] text-rose-500 font-semibold";
       }
 
-      // Walk Status
       const walkBadge = document.getElementById('walkStatusBadge');
       const walkSub = document.getElementById('walkSubtitle');
       if (appData.walkDone) {
@@ -834,7 +1076,6 @@
 
       document.getElementById('waterCount').textContent = (appData.water || 0) + " ml";
 
-      // Exercise Output
       const totalSummary = Object.keys(totals).map(u => `${totals[u]} ${u}`).join(' • ');
       document.getElementById('cumulativeOutput').textContent = totalSummary
         ? `${totalSummary} • Total: +${exerciseBurn} kcal burned`
@@ -858,7 +1099,6 @@
         `).join('');
       }
 
-      // Meal List
       const mealList = document.getElementById('mealList');
       if (!appData.meals || !appData.meals.length) {
         mealList.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No meals logged yet today.</p>';
@@ -882,7 +1122,7 @@
 
     updateExerciseCard();
     setInterval(updateFastingCycle, 1000);
-    setInterval(checkReminders, 15000); // Check alarms every 15s
+    setInterval(checkReminders, 15000);
     updateFastingCycle();
   </script>
 </body>
