@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Health Buddy • Fasting & Movement</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .progress-ring__circle {
+      transition: stroke-dashoffset 0.5s ease-in-out;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen pb-12">
+  <div class="max-w-md mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center border-b border-slate-800 pb-3">
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white">Health Buddy</h1>
+        <p class="text-xs text-slate-400">Night-Shift Fasting & Joint-Safe Movement</p>
+      </div>
+      <button onclick="requestNotificationAccess()" id="notifBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">
+        🔔 Enable Alerts
+      </button>
+    </header>
+
+    <!-- Shift Clock Indicator -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex justify-between items-center text-xs">
+      <div>
+        <span class="text-slate-400">Target Fast:</span>
+        <span class="font-bold text-amber-400 ml-1">12:00 AM – 3:00 PM</span>
+      </div>
+      <div id="shiftPhaseBadge" class="px-2 py-0.5 rounded font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800">
+        Detecting Phase...
+      </div>
+    </div>
+
+    <!-- Main Fasting Circular Gauge -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative shadow-lg">
+      <div class="relative w-64 h-64 flex items-center justify-center">
+        <svg class="w-full h-full" viewBox="0 0 240 240">
+          <!-- Background track -->
+          <circle cx="120" cy="120" r="100" stroke="#1e293b" stroke-width="14" fill="transparent" />
+          <!-- Progress stroke -->
+          <circle id="progressCircle" class="progress-ring__circle" cx="120" cy="120" r="100" stroke="#f59e0b" stroke-width="14" stroke-linecap="round" fill="transparent" stroke-dasharray="628.3" stroke-dashoffset="628.3" />
+        </svg>
+
+        <!-- Center Text Overlay -->
+        <div class="absolute flex flex-col items-center text-center px-4">
+          <span id="fastingStateLabel" class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">FASTING</span>
+          <span id="timerCountdown" class="text-3xl font-black text-white font-mono">00:00:00</span>
+          <span id="subTimerLabel" class="text-xs text-slate-400 mt-1">remaining until 3:00 PM</span>
+          <div id="stageBadge" class="mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Fat Oxidation
+          </div>
+        </div>
+      </div>
+
+      <!-- Metabolic Stage Explainer -->
+      <div class="mt-4 w-full bg-slate-950/60 rounded-xl p-3 border border-slate-800 text-xs space-y-1">
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-slate-300">Current Body Status:</span>
+          <span id="stageHoursDone" class="text-slate-400">0h in</span>
+        </div>
+        <p id="stageDescription" class="text-slate-400 text-[11px] leading-relaxed">
+          Calculating metabolic state...
+        </p>
+      </div>
+    </div>
+
+    <!-- 1-Tap Daily Habit Trackers -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- 6:00 AM Walk with Wife -->
+      <button onclick="logMorningWalk()" id="walkCard" class="bg-slate-900 hover:bg-slate-800/80 border border-slate-800 p-4 rounded-xl text-left flex flex-col justify-between transition group">
+        <div class="flex justify-between items-start">
+          <span class="text-2xl">🌅</span>
+          <span id="walkStatusIcon" class="text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">Pending</span>
+        </div>
+        <div class="mt-3">
+          <p class="text-xs font-bold text-white group-hover:text-emerald-400">6:00 AM Walk</p>
+          <p class="text-[11px] text-slate-400">Morning stroll with wife</p>
+        </div>
+      </button>
+
+      <!-- Water Intake -->
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-2xl">💧</span>
+          <span id="waterCount" class="text-xs font-bold text-cyan-400">0 ml</span>
+        </div>
+        <div class="mt-3 flex gap-1.5">
+          <button onclick="addWater(250)" class="w-full bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-[11px] font-bold py-1.5 rounded-lg transition">+250ml</button>
+          <button onclick="addWater(500)" class="w-full bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-[11px] font-bold py-1.5 rounded-lg transition">+500ml</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Joint-Safe Quick Movement Break Generator -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-sm font-bold text-white">Joint-Friendly Desk Break</h2>
+          <p class="text-xs text-slate-400">Low-impact • Zero knee/spine pressure</p>
+        </div>
+        <button onclick="generateRandomExercise()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+          🔄 Shuffle
+        </button>
+      </div>
+
+      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 flex items-center justify-between">
+        <div>
+          <p id="exerciseName" class="text-sm font-bold text-amber-300">10 Chair Box Squats</p>
+          <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5">Sit and stand smoothly from your office chair without using hands.</p>
+        </div>
+        <button onclick="completeExercise()" id="exerciseDoneBtn" class="ml-3 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-lg">
+          ✓ Done
+        </button>
+      </div>
+      <p id="dailyExerciseStats" class="text-[11px] text-slate-500 text-center">0 movement breaks completed today</p>
+    </div>
+
+    <!-- Quick Meal & Calorie Logger -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <h2 class="text-sm font-bold text-white">Quick Meal & Protein Logger</h2>
+      <div class="space-y-2">
+        <input type="text" id="mealInput" placeholder="e.g. 2 fried eggs, 1 cup rice, 1 can corned beef" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
+        <button onclick="logMeal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2 rounded-lg transition">
+          Log Meal Estimate
+        </button>
+      </div>
+
+      <!-- Logged Meals -->
+      <div id="mealList" class="divide-y divide-slate-800 max-h-40 overflow-y-auto text-xs pt-1">
+        <p class="text-slate-500 text-center py-2">No meals logged yet today.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100; // 628.318
+
+    // Joint-friendly exercise database
+    const safeExercises = [
+      { name: "10 Chair Box Squats", desc: "Sit down fully in your chair, pause 1 sec, stand up tall. Strengthens legs with zero knee strain." },
+      { name: "12 Wall / Desk Push-ups", desc: "Place palms flat on desk at an angle. Presses chest without 130kg floor strain on wrists." },
+      { name: "20 Seated Knee Raises", desc: "Sit tall, lift alternating knees toward chest. Activates core and hip flexors without spinal stress." },
+      { name: "15 Standing Calf Raises", desc: "Hold onto back of chair and lift heels high. Pumps blood back up legs from sitting." },
+      { name: "2-Minute Walking Stroll", desc: "Pace your room or hallway. Wakes up metabolism and lowers post-meal glucose." }
+    ];
+
+    let currentExerciseIndex = 0;
+
+    // Local state
+    let todayKey = new Date().toISOString().slice(0, 10);
+    let appData = JSON.parse(localStorage.getItem('health_buddy_' + todayKey) || JSON.stringify({
+      water: 0,
+      walkDone: false,
+      exercisesCompleted: 0,
+      meals: []
+    }));
+
+    function saveState() {
+      localStorage.setItem('health_buddy_' + todayKey, JSON.stringify(appData));
+      renderState();
+    }
+
+    // ------------------------------------------------
+    // Fasting & Metabolic Calculation (Ph Time Target)
+    // ------------------------------------------------
+    function updateFastingCycle() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+
+      const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+
+      // 12:00 Midnight to 3:00 PM (15 hours = 54,000 seconds)
+      const FAST_END_SECONDS = 15 * 3600; // 3:00 PM
+
+      const circle = document.getElementById('progressCircle');
+      const timerCountdown = document.getElementById('timerCountdown');
+      const stateLabel = document.getElementById('fastingStateLabel');
+      const subTimerLabel = document.getElementById('subTimerLabel');
+      const stageBadge = document.getElementById('stageBadge');
+      const stageDesc = document.getElementById('stageDescription');
+      const stageHours = document.getElementById('stageHoursDone');
+      const shiftPhase = document.getElementById('shiftPhaseBadge');
+
+      // Check Shift Phase
+      if (hours >= 7 && (hours < 14 || (hours === 14 && minutes < 30))) {
+        shiftPhase.textContent = '🌙 Sleep / Blackout Phase';
+        shiftPhase.className = 'px-2 py-0.5 rounded font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800';
+      } else if (hours >= 15 && hours < 24) {
+        shiftPhase.textContent = '🍽️ Eating Window Active';
+        shiftPhase.className = 'px-2 py-0.5 rounded font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800';
+      } else {
+        shiftPhase.textContent = '🔥 Fasting Mode Active';
+        shiftPhase.className = 'px-2 py-0.5 rounded font-semibold bg-amber-950 text-amber-300 border border-amber-800';
+      }
+
+      if (currentTotalSeconds < FAST_END_SECONDS) {
+        // FASTING PHASE (12:00 AM to 3:00 PM)
+        stateLabel.textContent = "FASTING";
+        stateLabel.className = "text-xs uppercase tracking-widest text-amber-400 font-bold mb-1";
+        circle.setAttribute("stroke", "#f59e0b");
+
+        const remainingSeconds = FAST_END_SECONDS - currentTotalSeconds;
+        const elapsedSeconds = currentTotalSeconds;
+        const elapsedHours = (elapsedSeconds / 3600).toFixed(1);
+
+        timerCountdown.textContent = formatTime(remainingSeconds);
+        subTimerLabel.textContent = "remaining until 3:00 PM eating window";
+        stageHours.textContent = `${elapsedHours} hrs completed`;
+
+        const pct = elapsedSeconds / FAST_END_SECONDS;
+        const offset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
+        circle.style.strokeDashoffset = offset;
+
+        // Stages breakdown
+        if (elapsedSeconds < 4 * 3600) {
+          stageBadge.textContent = "Digestion & Glucose Drop";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
+          stageDesc.textContent = "Your body is processing your late-night food. Insulin is tapering down to baseline levels.";
+        } else if (elapsedSeconds < 8 * 3600) {
+          stageBadge.textContent = "Glycogen Depletion";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
+          stageDesc.textContent = "Stored carbohydrate stores in the liver are emptying. Body begins switching over to fatty acids.";
+        } else if (elapsedSeconds < 12 * 3600) {
+          stageBadge.textContent = "Active Fat Oxidation";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
+          stageDesc.textContent = "Insulin is completely suppressed. Fat cells are directly releasing stored lipids for resting energy.";
+        } else {
+          stageBadge.textContent = "Peak Fat Burn & Autophagy";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+          stageDesc.textContent = "Maximum fat breakdown window before breaking fast. Early cellular repair (autophagy) underway.";
+        }
+
+      } else {
+        // EATING WINDOW (3:00 PM to 12:00 Midnight = 9 hours = 32,400 seconds)
+        stateLabel.textContent = "EATING WINDOW";
+        stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
+        circle.setAttribute("stroke", "#10b981");
+
+        const secondsInEatingWindow = currentTotalSeconds - FAST_END_SECONDS;
+        const totalEatingWindow = (24 * 3600) - FAST_END_SECONDS; // 32,400s
+        const remainingToMidnight = (24 * 3600) - currentTotalSeconds;
+
+        timerCountdown.textContent = formatTime(remainingToMidnight);
+        subTimerLabel.textContent = "until midnight fasting cutoff";
+
+        const pct = secondsInEatingWindow / totalEatingWindow;
+        const offset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
+        circle.style.strokeDashoffset = offset;
+
+        stageBadge.textContent = "Feeding & Recovery";
+        stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        stageHours.textContent = `${(secondsInEatingWindow / 3600).toFixed(1)} hrs in window`;
+        stageDesc.textContent = "Prioritize protein (eggs, chicken, fish) and hydration during your work shift before midnight.";
+      }
+    }
+
+    function formatTime(totalSec) {
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    // ------------------------------------------------
+    // Habits: Walk, Water, Exercise
+    // ------------------------------------------------
+    function logMorningWalk() {
+      appData.walkDone = !appData.walkDone;
+      saveState();
+      playChime();
+    }
+
+    function addWater(amount) {
+      appData.water += amount;
+      saveState();
+    }
+
+    function generateRandomExercise() {
+      currentExerciseIndex = (currentExerciseIndex + 1) % safeExercises.length;
+      document.getElementById('exerciseName').textContent = safeExercises[currentExerciseIndex].name;
+      document.getElementById('exerciseDesc').textContent = safeExercises[currentExerciseIndex].desc;
+    }
+
+    function completeExercise() {
+      appData.exercisesCompleted += 1;
+      saveState();
+      playChime();
+      generateRandomExercise();
+    }
+
+    // ------------------------------------------------
+    // Smart Meal Range Estimation
+    // ------------------------------------------------
+    function logMeal() {
+      const input = document.getElementById('mealInput');
+      const desc = input.value.trim();
+      if (!desc) return;
+
+      // Realistic estimation heuristics
+      let estimatedMin = 350;
+      let estimatedMax = 500;
+      let protein = 20;
+
+      const lower = desc.toLowerCase();
+      if (lower.includes('rice')) { estimatedMin += 180; estimatedMax += 220; }
+      if (lower.includes('egg')) { estimatedMin += 70; estimatedMax += 90; protein += 6; }
+      if (lower.includes('chicken') || lower.includes('pork') || lower.includes('beef')) {
+        estimatedMin += 250; estimatedMax += 350; protein += 25;
+      }
+      if (lower.includes('shoppee') || lower.includes('burger') || lower.includes('pizza') || lower.includes('fried')) {
+        estimatedMin += 200; estimatedMax += 300;
+      }
+
+      appData.meals.unshift({
+        desc,
+        range: `${estimatedMin}–${estimatedMax} kcal`,
+        protein: `~${protein}g Protein`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      input.value = '';
+      saveState();
+    }
+
+    function deleteMeal(idx) {
+      appData.meals.splice(idx, 1);
+      saveState();
+    }
+
+    // ------------------------------------------------
+    // Audio Chime & Browser Notification
+    // ------------------------------------------------
+    function playChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+      } catch(e) {}
+    }
+
+    function requestNotificationAccess() {
+      if (!("Notification" in window)) {
+        alert("Notifications are not supported on this browser.");
+        return;
+      }
+      Notification.requestPermission().then(permission => {
+        const btn = document.getElementById('notifBtn');
+        if (permission === "granted") {
+          btn.textContent = "🔔 Alerts Enabled";
+          btn.className = "text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-lg";
+          new Notification("Health Buddy Ready", { body: "Your shift reminders are active!" });
+        }
+      });
+    }
+
+    function renderState() {
+      // Walk Card
+      const walkIcon = document.getElementById('walkStatusIcon');
+      const walkCard = document.getElementById('walkCard');
+      if (appData.walkDone) {
+        walkIcon.textContent = "✓ Completed";
+        walkIcon.className = "text-xs font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
+        walkCard.className = "bg-slate-900 border border-emerald-800/60 p-4 rounded-xl text-left flex flex-col justify-between";
+      } else {
+        walkIcon.textContent = "Pending";
+        walkIcon.className = "text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        walkCard.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl text-left flex flex-col justify-between";
+      }
+
+      // Water
+      document.getElementById('waterCount').textContent = appData.water + " ml";
+
+      // Exercise Count
+      document.getElementById('dailyExerciseStats').textContent = `${appData.exercisesCompleted} movement break${appData.exercisesCompleted === 1 ? '' : 's'} logged today`;
+
+      // Meals
+      const mealList = document.getElementById('mealList');
+      if (!appData.meals.length) {
+        mealList.innerHTML = '<p class="text-slate-500 text-center py-2">No meals logged yet today.</p>';
+      } else {
+        mealList.innerHTML = appData.meals.map((m, idx) => `
+          <div class="py-2 flex justify-between items-center text-xs">
+            <div>
+              <p class="font-medium text-slate-200">${m.desc}</p>
+              <p class="text-[10px] text-slate-400">${m.time} • <span class="text-emerald-400">${m.protein}</span></p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="font-mono text-slate-400 text-[11px]">${m.range}</span>
+              <button onclick="deleteMeal(${idx})" class="text-slate-500 hover:text-rose-400 font-bold px-1">✕</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Interval Timer Loop (Updates every second)
+    setInterval(updateFastingCycle, 1000);
+    updateFastingCycle();
+    renderState();
+  </script>
+</body>
+</html>
