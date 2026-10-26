@@ -119,9 +119,7 @@
         </div>
       </div>
 
-      <div id="remindersList" class="space-y-2">
-        <!-- Rendered dynamically -->
-      </div>
+      <div id="remindersList" class="space-y-2"></div>
     </div>
 
     <!-- Daily Caloric Balance Gauge -->
@@ -181,25 +179,83 @@
       </div>
     </div>
 
-    <!-- Shift Habit Trackers: Walk, Water & Sleep -->
-    <div class="grid grid-cols-2 gap-3">
-      <!-- 6:00 AM Walk with Wife -->
-      <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
+    <!-- DYNAMIC 1-TAP TRACKERS: LIVE MORNING WALK & LIVE SLEEP TRACKER -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      
+      <!-- 1. Real-Time 6:00 AM Walk Tracker (Naic, Cavite Heat Adjusted) -->
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3">
         <div class="flex justify-between items-start">
-          <span class="text-2xl">🌅</span>
-          <span id="walkStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">Pending</span>
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">🌅</span>
+            <div>
+              <p class="text-xs font-bold text-white">6:00 AM Walk</p>
+              <p class="text-[10px] text-slate-400">Naic, Cavite Stroll (~7.4 kcal/min)</p>
+            </div>
+          </div>
+          <span id="walkStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+            Ready
+          </span>
         </div>
-        <div class="mt-2">
-          <p class="text-xs font-bold text-white">6:00 AM Walk</p>
-          <p id="walkSubtitle" class="text-[10px] text-slate-400">Stroll with wife</p>
+
+        <!-- Live Walk Active Display -->
+        <div id="walkActiveBox" class="hidden bg-slate-950 p-2.5 rounded-lg border border-emerald-800/60 text-center">
+          <p id="liveWalkTimer" class="font-mono text-xl font-black text-emerald-400">00:00</p>
+          <p id="liveWalkBurn" class="text-[10px] text-emerald-300 mt-0.5">+0 kcal burned (Live 130kg)</p>
         </div>
-        <div class="mt-2 flex gap-1">
-          <button onclick="logWalk('15 min', 115)" class="w-full bg-slate-800 hover:bg-emerald-950 hover:text-emerald-300 text-[10px] py-1 rounded border border-slate-700">15m (+115k)</button>
-          <button onclick="logWalk('25 min', 190)" class="w-full bg-slate-800 hover:bg-emerald-950 hover:text-emerald-300 text-[10px] py-1 rounded border border-slate-700">25m (+190k)</button>
-          <button onclick="logWalk('40 min', 300)" class="w-full bg-slate-800 hover:bg-emerald-950 hover:text-emerald-300 text-[10px] py-1 rounded border border-slate-700">40m (+300k)</button>
+
+        <div id="walkCompletedBox" class="hidden bg-slate-950 p-2 rounded-lg border border-slate-800 text-center text-xs">
+          <p id="walkSummaryText" class="font-semibold text-emerald-400">Walk Logged</p>
+        </div>
+
+        <!-- Walk Action Buttons -->
+        <div>
+          <button id="walkStartBtn" onclick="toggleWalkSession()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg transition shadow">
+            🚶 Start Morning Walk
+          </button>
         </div>
       </div>
 
+      <!-- 2. Real-Time Sleep Tracker (Bedtime Press & Wake Press) -->
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3">
+        <div class="flex justify-between items-start">
+          <div class="flex items-center space-x-2">
+            <span class="text-2xl">🛌</span>
+            <div>
+              <p class="text-xs font-bold text-white">Day Sleep</p>
+              <p class="text-[10px] text-slate-400">7:00 AM – 3:00 PM target</p>
+            </div>
+          </div>
+          <span id="sleepStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+            Ready
+          </span>
+        </div>
+
+        <!-- Live Sleeping Active Display -->
+        <div id="sleepActiveBox" class="hidden bg-slate-950 p-2.5 rounded-lg border border-indigo-800/60 text-center">
+          <p id="liveSleepTimer" class="font-mono text-xl font-black text-indigo-400">00h 00m</p>
+          <p id="sleepStartedAt" class="text-[10px] text-indigo-300 mt-0.5">Asleep...</p>
+        </div>
+
+        <div id="sleepCompletedBox" class="hidden bg-slate-950 p-2 rounded-lg border border-slate-800 text-center text-xs">
+          <p id="sleepSummaryText" class="font-semibold text-indigo-300">Sleep Logged</p>
+        </div>
+
+        <!-- Sleep Action Buttons & Midnight Bathroom Break -->
+        <div class="space-y-1.5">
+          <button id="sleepStartBtn" onclick="toggleSleepSession()" class="w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs py-2 rounded-lg transition shadow">
+            🛏️ Going to Sleep
+          </button>
+          
+          <button id="peeBreakBtn" onclick="togglePeeBreak()" class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1.5 rounded-lg border border-slate-700">
+            🚽 Pause for Bathroom Break
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Hydration & Weekly Weight -->
+    <div class="grid grid-cols-2 gap-3">
       <!-- Water Intake -->
       <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
         <div class="flex justify-between items-start">
@@ -215,36 +271,16 @@
           <button onclick="addWater(500)" class="w-full bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-[10px] font-bold py-1 rounded">+500ml</button>
         </div>
       </div>
-    </div>
-
-    <!-- Shift Worker Sleep Hours & Weekly Weight -->
-    <div class="grid grid-cols-2 gap-3">
-      <!-- Sleep Tracker (7 AM - 3 PM) -->
-      <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
-        <div class="flex justify-between items-start">
-          <span class="text-2xl">🛌</span>
-          <span id="sleepDisplayBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">Not Logged</span>
-        </div>
-        <div class="mt-2">
-          <p class="text-xs font-bold text-white">Day Sleep</p>
-          <p class="text-[10px] text-slate-400">7:00 AM – 3:00 PM target</p>
-        </div>
-        <div class="mt-2 flex gap-1">
-          <button onclick="logSleep(6)" class="w-full bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-[10px] py-1 rounded border border-slate-700">6h</button>
-          <button onclick="logSleep(7)" class="w-full bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-[10px] py-1 rounded border border-slate-700">7h</button>
-          <button onclick="logSleep(8)" class="w-full bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-[10px] py-1 rounded border border-slate-700">8h</button>
-        </div>
-      </div>
 
       <!-- Weekly Weight Tracker -->
       <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-2xl">⚖️</span>
-          <span id="weightDisplayBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">~130 kg</span>
+          <span id="weightDisplayBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">130 kg</span>
         </div>
         <div class="mt-2">
           <p class="text-xs font-bold text-white">Weekly Weight</p>
-          <p id="weightSubText" class="text-[10px] text-slate-400">Log 1x per week</p>
+          <p class="text-[10px] text-slate-400">Measured 1x weekly</p>
         </div>
         <div class="mt-2">
           <button onclick="logWeeklyWeight()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 rounded border border-slate-700 font-semibold">
@@ -286,11 +322,9 @@
           </button>
         </div>
 
-        <!-- 3-Point Joint Safety Checklist -->
         <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-[11px] space-y-1">
           <p class="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Proper Form & Safety Cues:</p>
-          <ul id="exerciseSafetyCues" class="text-slate-400 space-y-0.5 list-disc list-inside">
-          </ul>
+          <ul id="exerciseSafetyCues" class="text-slate-400 space-y-0.5 list-disc list-inside"></ul>
         </div>
 
         <div class="pt-1 flex items-center justify-between text-[11px]">
@@ -329,7 +363,6 @@
           </button>
         </div>
 
-        <!-- Editable Override Numbers -->
         <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-xs">
           <div>
             <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Auto / Editable):</label>
@@ -380,6 +413,7 @@
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
     const BASE_SEDENTARY_TDEE = 2650;
 
+    // Movement Database
     const exercisePool = [
       {
         category: "Equipment / Chest",
@@ -472,22 +506,31 @@
     const todayDocRef = db.collection("health_daily").doc(todayKey);
     const metaDocRef = db.collection("health_meta").doc("user_stats");
 
+    let userWeight = 130;
+
     let appData = {
       water: 0,
-      sleepHours: 0,
-      walkDone: false,
-      walkDuration: '',
-      walkKcal: 0,
       exerciseLogs: [],
       meals: [],
+      // Walk state
+      walkActive: false,
+      walkStartTime: null,
+      walkDurationMinutes: 0,
+      walkKcal: 0,
+      walkCompleted: false,
+      // Sleep state
+      sleepActive: false,
+      sleepStartTime: null,
+      sleepPaused: false,
+      sleepPauseStartTime: null,
+      sleepPausedDurationMs: 0,
+      sleepDurationHours: 0,
+      sleepCompleted: false,
       reminders: [
         { id: 1, label: "Pick up daughter at school", type: "weekday", time: "15:30", note: "Dismissal 4:00 PM (30 min early)", date: "", alertedToday: false }
       ]
     };
 
-    let userWeight = 130;
-
-    // Load weight metadata
     metaDocRef.onSnapshot(doc => {
       if (doc.exists && doc.data().weight) {
         userWeight = doc.data().weight;
@@ -495,24 +538,13 @@
       }
     });
 
-    // Daily snapshot
     todayDocRef.onSnapshot((doc) => {
       const indicator = document.getElementById('syncIndicator');
       indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-emerald-950 text-emerald-300 border border-emerald-800';
       indicator.textContent = '● Live Synced';
 
       if (doc.exists) {
-        const remote = doc.data();
-        appData.water = remote.water || 0;
-        appData.sleepHours = remote.sleepHours || 0;
-        appData.walkDone = remote.walkDone || false;
-        appData.walkDuration = remote.walkDuration || '';
-        appData.walkKcal = remote.walkKcal || 0;
-        appData.exerciseLogs = remote.exerciseLogs || [];
-        appData.meals = remote.meals || [];
-        if (remote.reminders && remote.reminders.length) {
-          appData.reminders = remote.reminders;
-        }
+        appData = Object.assign(appData, doc.data());
       } else {
         todayDocRef.set(appData);
       }
@@ -529,7 +561,176 @@
     }
 
     // ----------------------------------------------------
-    // 2. Voice Dictation (🎙️ Web Speech API)
+    // 2. LIVE MORNING WALK SESSION (Naic, Cavite Calibrated)
+    // ----------------------------------------------------
+    function toggleWalkSession() {
+      if (!appData.walkActive) {
+        // Start walk
+        appData.walkActive = true;
+        appData.walkStartTime = Date.now();
+        appData.walkCompleted = false;
+      } else {
+        // Finish walk
+        const elapsedMs = Date.now() - appData.walkStartTime;
+        const minutes = Math.max(1, Math.round(elapsedMs / 60000));
+        
+        // 130kg + Naic tropical morning heat/humidity factor: ~7.41 kcal per minute
+        const burned = Math.round(minutes * (userWeight * 0.057));
+
+        appData.walkActive = false;
+        appData.walkDurationMinutes = minutes;
+        appData.walkKcal = burned;
+        appData.walkCompleted = true;
+      }
+      pushUpdate();
+    }
+
+    function updateLiveWalkUI() {
+      const activeBox = document.getElementById('walkActiveBox');
+      const completedBox = document.getElementById('walkCompletedBox');
+      const startBtn = document.getElementById('walkStartBtn');
+      const badge = document.getElementById('walkStatusBadge');
+
+      if (appData.walkActive && appData.walkStartTime) {
+        activeBox.classList.remove('hidden');
+        completedBox.classList.add('hidden');
+        badge.textContent = "Walking Now";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse";
+        startBtn.textContent = "🏁 Finish Walk & Log Burn";
+        startBtn.className = "w-full bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+
+        const elapsedSec = Math.floor((Date.now() - appData.walkStartTime) / 1000);
+        const m = Math.floor(elapsedSec / 60);
+        const s = elapsedSec % 60;
+        document.getElementById('liveWalkTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        
+        const liveKcal = Math.round((elapsedSec / 60) * (userWeight * 0.057));
+        document.getElementById('liveWalkBurn').textContent = `+${liveKcal} kcal burned so far (Naic stroll)`;
+      } else if (appData.walkCompleted) {
+        activeBox.classList.add('hidden');
+        completedBox.classList.remove('hidden');
+        badge.textContent = `✓ ${appData.walkDurationMinutes}m Walk`;
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
+        startBtn.textContent = "🔄 Start Another Walk";
+        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
+        document.getElementById('walkSummaryText').textContent = `Walk Logged: ${appData.walkDurationMinutes} mins (+${appData.walkKcal} kcal)`;
+      } else {
+        activeBox.classList.add('hidden');
+        completedBox.classList.add('hidden');
+        badge.textContent = "Ready";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        startBtn.textContent = "🚶 Start Morning Walk";
+        startBtn.className = "w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+      }
+    }
+
+    // ----------------------------------------------------
+    // 3. LIVE DAY SLEEP SESSION (Bedtime Press & Wake Press)
+    // ----------------------------------------------------
+    function toggleSleepSession() {
+      if (!appData.sleepActive) {
+        // Going to sleep now
+        appData.sleepActive = true;
+        appData.sleepStartTime = Date.now();
+        appData.sleepPaused = false;
+        appData.sleepPausedDurationMs = 0;
+        appData.sleepCompleted = false;
+      } else {
+        // Waking up
+        let totalMs = Date.now() - appData.sleepStartTime;
+        if (appData.sleepPaused && appData.sleepPauseStartTime) {
+          appData.sleepPausedDurationMs += (Date.now() - appData.sleepPauseStartTime);
+        }
+        totalMs -= (appData.sleepPausedDurationMs || 0);
+
+        const hours = (Math.max(0, totalMs) / (1000 * 3600)).toFixed(1);
+
+        appData.sleepActive = false;
+        appData.sleepPaused = false;
+        appData.sleepDurationHours = parseFloat(hours);
+        appData.sleepCompleted = true;
+      }
+      pushUpdate();
+    }
+
+    function togglePeeBreak() {
+      if (!appData.sleepActive) return;
+
+      if (!appData.sleepPaused) {
+        appData.sleepPaused = true;
+        appData.sleepPauseStartTime = Date.now();
+      } else {
+        appData.sleepPaused = false;
+        if (appData.sleepPauseStartTime) {
+          appData.sleepPausedDurationMs = (appData.sleepPausedDurationMs || 0) + (Date.now() - appData.sleepPauseStartTime);
+          appData.sleepPauseStartTime = null;
+        }
+      }
+      pushUpdate();
+    }
+
+    function updateLiveSleepUI() {
+      const activeBox = document.getElementById('sleepActiveBox');
+      const completedBox = document.getElementById('sleepCompletedBox');
+      const startBtn = document.getElementById('sleepStartBtn');
+      const peeBtn = document.getElementById('peeBreakBtn');
+      const badge = document.getElementById('sleepStatusBadge');
+
+      if (appData.sleepActive && appData.sleepStartTime) {
+        activeBox.classList.remove('hidden');
+        completedBox.classList.add('hidden');
+        peeBtn.classList.remove('hidden');
+
+        if (appData.sleepPaused) {
+          badge.textContent = "Paused (Pee break)";
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800";
+          peeBtn.textContent = "▶️ Back to Bed (Resume Sleep)";
+          peeBtn.className = "w-full bg-amber-800 hover:bg-amber-700 text-white font-bold text-[10px] py-1.5 rounded-lg";
+        } else {
+          badge.textContent = "Sleeping 🌙";
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 animate-pulse";
+          peeBtn.textContent = "🚽 Pause for Bathroom Break";
+          peeBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1.5 rounded-lg border border-slate-700";
+        }
+
+        startBtn.textContent = "☀️ I'm Awake (Stop Timer)";
+        startBtn.className = "w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+
+        let currentActiveMs = Date.now() - appData.sleepStartTime - (appData.sleepPausedDurationMs || 0);
+        if (appData.sleepPaused && appData.sleepPauseStartTime) {
+          currentActiveMs -= (Date.now() - appData.sleepPauseStartTime);
+        }
+        currentActiveMs = Math.max(0, currentActiveMs);
+
+        const totalMinutes = Math.floor(currentActiveMs / 60000);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        document.getElementById('liveSleepTimer').textContent = `${h}h ${String(m).padStart(2,'0')}m`;
+        
+        const startTimeStr = new Date(appData.sleepStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('sleepStartedAt').textContent = `In bed since ${startTimeStr}`;
+      } else if (appData.sleepCompleted) {
+        activeBox.classList.add('hidden');
+        completedBox.classList.remove('hidden');
+        peeBtn.classList.add('hidden');
+        badge.textContent = `✓ ${appData.sleepDurationHours}h Slept`;
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800";
+        startBtn.textContent = "🛏️ Start New Sleep";
+        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
+        document.getElementById('sleepSummaryText').textContent = `Rest Logged: ${appData.sleepDurationHours} hours of sleep`;
+      } else {
+        activeBox.classList.add('hidden');
+        completedBox.classList.add('hidden');
+        peeBtn.classList.add('hidden');
+        badge.textContent = "Ready";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        startBtn.textContent = "🛏️ Going to Sleep";
+        startBtn.className = "w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+      }
+    }
+
+    // ----------------------------------------------------
+    // 4. Voice Dictation & Food Engine
     // ----------------------------------------------------
     function startDictation(targetInputId, callback) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -544,9 +745,7 @@
       recognition.maxAlternatives = 1;
 
       const micBtn = document.getElementById(targetInputId + 'MicBtn');
-      if (micBtn) {
-        micBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
-      }
+      if (micBtn) micBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
 
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -555,20 +754,12 @@
         if (callback) callback();
       };
 
-      recognition.onerror = () => {
-        if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse');
-      };
-
-      recognition.onend = () => {
-        if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse');
-      };
+      recognition.onerror = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
+      recognition.onend = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
 
       recognition.start();
     }
 
-    // ----------------------------------------------------
-    // 3. Smart Filipino Food & Zero-Calorie Beverage Engine
-    // ----------------------------------------------------
     function parseQuantity(text, keyword) {
       const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc|cups|cup|slices|slice|mugs|mug)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
       const match = text.match(regex);
@@ -588,7 +779,6 @@
       let protein = 0;
       let matched = false;
 
-      // 1. Zero / Minimal Calorie Items
       const isBlackCoffee = text.includes('black coffee') || text.includes('brewed coffee') || text.includes('drip coffee') || text.includes('americano') || (text.includes('coffee') && !text.includes('3 in 1') && !text.includes('3-in-1') && !text.includes('latte') && !text.includes('sugar') && !text.includes('milk'));
       const isZeroBeverage = text.includes('water') || text.includes('coke zero') || text.includes('pepsi zero') || text.includes('diet coke') || text.includes('green tea') || text.includes('black tea');
 
@@ -598,7 +788,6 @@
         matched = true;
       }
 
-      // 2. Coffee with additions
       if (text.includes('3 in 1') || text.includes('3-in-1') || text.includes('three in one')) {
         const packets = parseQuantity(text, 'sachet') || parseQuantity(text, 'packet') || 1;
         kcal += packets * 80;
@@ -606,7 +795,6 @@
         matched = true;
       }
 
-      // 3. Dim Sum & Street Snacks
       const siomaiQty = parseQuantity(text, 'siomai') || parseQuantity(text, 'shumai');
       if (siomaiQty > 0) {
         kcal += siomaiQty * 46;
@@ -614,7 +802,6 @@
         matched = true;
       }
 
-      // 4. Carbs: Rice & Bread
       const riceQty = parseQuantity(text, 'rice') || parseQuantity(text, 'kanin');
       if (riceQty > 0) {
         kcal += riceQty * 205;
@@ -629,7 +816,6 @@
         matched = true;
       }
 
-      // 5. Eggs
       const eggQty = parseQuantity(text, 'egg') || parseQuantity(text, 'itlog');
       if (eggQty > 0) {
         kcal += eggQty * 75;
@@ -637,14 +823,12 @@
         matched = true;
       }
 
-      // 6. Fish & Seafood
       if (text.includes('bangus') || text.includes('tilapia') || text.includes('fish') || text.includes('isda') || text.includes('tuna')) {
         kcal += 180;
         protein += 24;
         matched = true;
       }
 
-      // 7. Meats: Beef, Pork, Chicken, Breakfast
       if (text.includes('beef') || text.includes('tapa') || text.includes('bistek') || text.includes('bulalo')) {
         kcal += 280;
         protein += 26;
@@ -680,7 +864,6 @@
 
       if (text.includes('chili oil') || text.includes('chili garlic')) kcal += 90;
 
-      // Unmatched fallback: only apply if no recognizable items were identified
       if (!matched) {
         kcal = 350;
         protein = 15;
@@ -722,15 +905,15 @@
     }
 
     // ----------------------------------------------------
-    // 4. Sleep & Weekly Weight Loggers
+    // 5. Weight, Water & Movements
     // ----------------------------------------------------
-    function logSleep(hours) {
-      appData.sleepHours = hours;
+    function addWater(amount) {
+      appData.water = (appData.water || 0) + amount;
       pushUpdate();
     }
 
     async function logWeeklyWeight() {
-      const input = prompt(`Enter your current weight in kg (Last: ${userWeight} kg):`, userWeight);
+      const input = prompt(`Enter your current weight in kg (Current: ${userWeight} kg):`, userWeight);
       if (!input) return;
       const parsed = parseFloat(input);
       if (isNaN(parsed) || parsed < 50 || parsed > 250) {
@@ -742,233 +925,6 @@
       document.getElementById('weightDisplayBadge').textContent = `${userWeight} kg`;
     }
 
-    // ----------------------------------------------------
-    // 5. Timed Reminders, Alarms & Phone Sync
-    // ----------------------------------------------------
-    function toggleReminderForm() {
-      const form = document.getElementById('addReminderForm');
-      form.classList.toggle('hidden');
-    }
-
-    function toggleDateSelector() {
-      const type = document.getElementById('reminderTypeSelect').value;
-      const dateBox = document.getElementById('futureDateContainer');
-      if (type === 'future') {
-        dateBox.classList.remove('hidden');
-      } else {
-        dateBox.classList.add('hidden');
-      }
-    }
-
-    function saveNewReminder() {
-      const label = document.getElementById('reminderLabelInput').value.trim();
-      const type = document.getElementById('reminderTypeSelect').value;
-      const time = document.getElementById('reminderTimeInput').value;
-      const date = document.getElementById('reminderDateInput').value;
-      const note = document.getElementById('reminderNoteInput').value.trim();
-
-      if (!label || !time) {
-        alert("Please enter a reminder title and time.");
-        return;
-      }
-
-      if (type === 'future' && !date) {
-        alert("Please select a specific date for this reminder.");
-        return;
-      }
-
-      if (!appData.reminders) appData.reminders = [];
-      appData.reminders.push({
-        id: Date.now(),
-        label,
-        type,
-        time,
-        date: type === 'future' ? date : '',
-        note,
-        alertedToday: false
-      });
-
-      pushUpdate();
-      toggleReminderForm();
-
-      document.getElementById('reminderLabelInput').value = '';
-      document.getElementById('reminderNoteInput').value = '';
-      document.getElementById('reminderDateInput').value = '';
-    }
-
-    function deleteReminder(id) {
-      if (!confirm("Delete this reminder?")) return;
-      appData.reminders = appData.reminders.filter(r => r.id !== id);
-      pushUpdate();
-      renderReminders();
-    }
-
-    function addToPhoneCalendar(id) {
-      const r = (appData.reminders || []).find(item => item.id === id);
-      if (!r) return;
-
-      const [hours, minutes] = r.time.split(':');
-      let targetDate = new Date();
-
-      if (r.type === 'future' && r.date) {
-        const [y, m, d] = r.date.split('-');
-        targetDate = new Date(y, m - 1, d);
-      }
-      targetDate.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0);
-
-      const startISO = targetDate.toISOString().replace(/-|:|\.\d+/g, '');
-      const endDate = new Date(targetDate.getTime() + 30 * 60000);
-      const endISO = endDate.toISOString().replace(/-|:|\.\d+/g, '');
-
-      const icsData = [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//Health Buddy//EN',
-        'BEGIN:VEVENT',
-        `SUMMARY:${r.label}`,
-        `DESCRIPTION:${r.note || 'Health Buddy Reminder'}`,
-        `DTSTART:${startISO}`,
-        `DTEND:${endISO}`,
-        'BEGIN:VALARM',
-        'TRIGGER:-PT15M',
-        'ACTION:DISPLAY',
-        'DESCRIPTION:Reminder',
-        'END:VALARM',
-        'END:VEVENT',
-        'END:VCALENDAR'
-      ].join('\r\n');
-
-      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.setAttribute('download', `${r.label.replace(/\s+/g, '_')}.ics`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function checkReminders() {
-      const now = new Date();
-      const currentHours = String(now.getHours()).padStart(2, '0');
-      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
-      const currentTimeStr = `${currentHours}:${currentMinutes}`;
-      const currentDateStr = now.toISOString().slice(0, 10);
-      const day = now.getDay();
-
-      (appData.reminders || []).forEach(r => {
-        if (r.type === 'weekday' && (day === 0 || day === 6)) return;
-        if (r.type === 'future' && r.date !== currentDateStr) return;
-
-        if (r.time === currentTimeStr && !r.alertedToday) {
-          triggerAlarm(r);
-          r.alertedToday = true;
-          pushUpdate();
-        }
-
-        if (currentTimeStr === "00:01") {
-          r.alertedToday = false;
-        }
-      });
-    }
-
-    function triggerAlarm(reminder) {
-      playLoudChime();
-      const popup = document.getElementById('alarmPopup');
-      document.getElementById('alarmTitle').textContent = `⏰ ${reminder.label}`;
-      document.getElementById('alarmSubtitle').textContent = reminder.note || `Time: ${format12Hour(reminder.time)}`;
-      popup.classList.remove('hidden');
-
-      if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(reminder.label, {
-          body: reminder.note || `Scheduled alert at ${format12Hour(reminder.time)}`,
-          icon: "https://cdn-icons-png.flaticon.com/512/883/883256.png"
-        });
-      }
-    }
-
-    function dismissAlarm() {
-      document.getElementById('alarmPopup').classList.add('hidden');
-    }
-
-    function renderReminders() {
-      const container = document.getElementById('remindersList');
-      if (!appData.reminders || !appData.reminders.length) {
-        container.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No active reminders.</p>';
-        return;
-      }
-
-      container.innerHTML = appData.reminders.map(r => {
-        let badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Mon–Fri</span>';
-        if (r.type === 'daily') badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">Daily</span>';
-        if (r.type === 'future') badge = `<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 border border-amber-800">📅 ${r.date}</span>`;
-
-        return `
-          <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
-            <div>
-              <div class="flex items-center space-x-2">
-                <span class="font-mono text-amber-400 font-bold">${format12Hour(r.time)}</span>
-                <span class="font-semibold text-slate-200">${r.label}</span>
-                ${badge}
-              </div>
-              ${r.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${r.note}</p>` : ''}
-            </div>
-            <div class="flex items-center space-x-1.5">
-              <button onclick="addToPhoneCalendar(${r.id})" title="Add to Native Phone Calendar" class="bg-slate-900 hover:bg-slate-800 text-slate-300 text-[10px] px-2 py-1 rounded border border-slate-700">
-                📅 Sync
-              </button>
-              <button onclick="deleteReminder(${r.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function format12Hour(timeStr) {
-      if (!timeStr) return '';
-      const [h, m] = timeStr.split(':');
-      let hours = parseInt(h, 10);
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12 || 12;
-      return `${hours}:${m} ${ampm}`;
-    }
-
-    function playLoudChime() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        for (let i = 0; i < 3; i++) {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + (i * 0.25));
-          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + (i * 0.25) + 0.2);
-          gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (i * 0.25));
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.25) + 0.2);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(audioCtx.currentTime + (i * 0.25));
-          osc.stop(audioCtx.currentTime + (i * 0.25) + 0.2);
-        }
-      } catch(e) {}
-    }
-
-    function requestNotificationAccess() {
-      if (!("Notification" in window)) {
-        alert("Notifications are not supported on this browser.");
-        return;
-      }
-      Notification.requestPermission().then(permission => {
-        const btn = document.getElementById('notifBtn');
-        if (permission === "granted") {
-          btn.textContent = "🔔 Active";
-          btn.className = "text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-1 rounded";
-          new Notification("Health Buddy Ready", { body: "Your alarms and pickup reminders are active!" });
-        }
-      });
-    }
-
-    // ----------------------------------------------------
-    // 6. Movement Engine & Visual Guide
-    // ----------------------------------------------------
     function cycleExercise() {
       currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
       updateExerciseCard();
@@ -1016,7 +972,7 @@
     }
 
     // ----------------------------------------------------
-    // 7. Fasting & Rest Day Engine
+    // 6. Fasting & Rest Day Schedule
     // ----------------------------------------------------
     function isRestDay(now) {
       const day = now.getDay();
@@ -1148,27 +1104,187 @@
       return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
 
-    function logWalk(duration, kcal) {
-      appData.walkDone = true;
-      appData.walkDuration = duration;
-      appData.walkKcal = kcal;
-      pushUpdate();
+    // ----------------------------------------------------
+    // 7. Alarms & Reminders Engine
+    // ----------------------------------------------------
+    function toggleReminderForm() {
+      document.getElementById('addReminderForm').classList.toggle('hidden');
     }
 
-    function addWater(amount) {
-      appData.water = (appData.water || 0) + amount;
+    function toggleDateSelector() {
+      const type = document.getElementById('reminderTypeSelect').value;
+      const dateBox = document.getElementById('futureDateContainer');
+      if (type === 'future') dateBox.classList.remove('hidden');
+      else dateBox.classList.add('hidden');
+    }
+
+    function saveNewReminder() {
+      const label = document.getElementById('reminderLabelInput').value.trim();
+      const type = document.getElementById('reminderTypeSelect').value;
+      const time = document.getElementById('reminderTimeInput').value;
+      const date = document.getElementById('reminderDateInput').value;
+      const note = document.getElementById('reminderNoteInput').value.trim();
+
+      if (!label || !time) {
+        alert("Please enter a reminder title and time.");
+        return;
+      }
+      if (type === 'future' && !date) {
+        alert("Please select a date.");
+        return;
+      }
+
+      if (!appData.reminders) appData.reminders = [];
+      appData.reminders.push({
+        id: Date.now(),
+        label,
+        type,
+        time,
+        date: type === 'future' ? date : '',
+        note,
+        alertedToday: false
+      });
+
       pushUpdate();
+      toggleReminderForm();
+
+      document.getElementById('reminderLabelInput').value = '';
+      document.getElementById('reminderNoteInput').value = '';
+      document.getElementById('reminderDateInput').value = '';
+    }
+
+    function deleteReminder(id) {
+      if (!confirm("Delete this reminder?")) return;
+      appData.reminders = appData.reminders.filter(r => r.id !== id);
+      pushUpdate();
+      renderReminders();
+    }
+
+    function checkReminders() {
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTimeStr = `${currentHours}:${currentMinutes}`;
+      const currentDateStr = now.toISOString().slice(0, 10);
+      const day = now.getDay();
+
+      (appData.reminders || []).forEach(r => {
+        if (r.type === 'weekday' && (day === 0 || day === 6)) return;
+        if (r.type === 'future' && r.date !== currentDateStr) return;
+
+        if (r.time === currentTimeStr && !r.alertedToday) {
+          triggerAlarm(r);
+          r.alertedToday = true;
+          pushUpdate();
+        }
+
+        if (currentTimeStr === "00:01") {
+          r.alertedToday = false;
+        }
+      });
+    }
+
+    function triggerAlarm(reminder) {
+      playLoudChime();
+      const popup = document.getElementById('alarmPopup');
+      document.getElementById('alarmTitle').textContent = `⏰ ${reminder.label}`;
+      document.getElementById('alarmSubtitle').textContent = reminder.note || `Time: ${format12Hour(reminder.time)}`;
+      popup.classList.remove('hidden');
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(reminder.label, {
+          body: reminder.note || `Scheduled alert at ${format12Hour(reminder.time)}`,
+          icon: "https://cdn-icons-png.flaticon.com/512/883/883256.png"
+        });
+      }
+    }
+
+    function dismissAlarm() {
+      document.getElementById('alarmPopup').classList.add('hidden');
+    }
+
+    function renderReminders() {
+      const container = document.getElementById('remindersList');
+      if (!appData.reminders || !appData.reminders.length) {
+        container.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No active reminders.</p>';
+        return;
+      }
+
+      container.innerHTML = appData.reminders.map(r => {
+        let badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Mon–Fri</span>';
+        if (r.type === 'daily') badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">Daily</span>';
+        if (r.type === 'future') badge = `<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 border border-amber-800">📅 ${r.date}</span>`;
+
+        return `
+          <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="font-mono text-amber-400 font-bold">${format12Hour(r.time)}</span>
+                <span class="font-semibold text-slate-200">${r.label}</span>
+                ${badge}
+              </div>
+              ${r.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${r.note}</p>` : ''}
+            </div>
+            <button onclick="deleteReminder(${r.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function format12Hour(timeStr) {
+      if (!timeStr) return '';
+      const [h, m] = timeStr.split(':');
+      let hours = parseInt(h, 10);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${m} ${ampm}`;
+    }
+
+    function playLoudChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        for (let i = 0; i < 3; i++) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + (i * 0.25));
+          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + (i * 0.25) + 0.2);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (i * 0.25));
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.25) + 0.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + (i * 0.25));
+          osc.stop(audioCtx.currentTime + (i * 0.25) + 0.2);
+        }
+      } catch(e) {}
+    }
+
+    function requestNotificationAccess() {
+      if (!("Notification" in window)) {
+        alert("Notifications are not supported on this browser.");
+        return;
+      }
+      Notification.requestPermission().then(permission => {
+        const btn = document.getElementById('notifBtn');
+        if (permission === "granted") {
+          btn.textContent = "🔔 Active";
+          btn.className = "text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-1 rounded";
+          new Notification("Health Buddy Ready", { body: "Your alarms are active!" });
+        }
+      });
     }
 
     // ----------------------------------------------------
     // 8. Caloric Balance & Overall State Render
     // ----------------------------------------------------
     function renderState() {
+      // Food intake
       let totalEaten = 0;
       (appData.meals || []).forEach(m => {
         totalEaten += (m.kcal || 0);
       });
 
+      // Exercises
       let exerciseBurn = 0;
       const logs = appData.exerciseLogs || [];
       const totals = {};
@@ -1177,6 +1293,7 @@
         totals[l.unit] = (totals[l.unit] || 0) + l.reps;
       });
 
+      // Walk burn
       const walkBurn = appData.walkKcal || 0;
       const totalActiveBurn = exerciseBurn + walkBurn;
       const grandTotalBurn = BASE_SEDENTARY_TDEE + totalActiveBurn;
@@ -1200,32 +1317,9 @@
         netLabel.className = "text-[9px] text-rose-500 font-semibold";
       }
 
-      // Walk Status
-      const walkBadge = document.getElementById('walkStatusBadge');
-      const walkSub = document.getElementById('walkSubtitle');
-      if (appData.walkDone) {
-        walkBadge.textContent = `✓ ${appData.walkDuration} (+${walkBurn}k)`;
-        walkBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
-        walkSub.textContent = `Completed with wife (+${walkBurn} kcal)`;
-      } else {
-        walkBadge.textContent = "Pending";
-        walkBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
-        walkSub.textContent = "Stroll with wife (6:00 AM)";
-      }
-
-      // Sleep Badge
-      const sleepBadge = document.getElementById('sleepDisplayBadge');
-      if (appData.sleepHours > 0) {
-        sleepBadge.textContent = `✓ ${appData.sleepHours} hrs rest`;
-        sleepBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800";
-      } else {
-        sleepBadge.textContent = "Not Logged";
-        sleepBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
-      }
-
       document.getElementById('waterCount').textContent = (appData.water || 0) + " ml";
 
-      // Exercise Output
+      // Output totals
       const totalSummary = Object.keys(totals).map(u => `${totals[u]} ${u}`).join(' • ');
       document.getElementById('cumulativeOutput').textContent = totalSummary
         ? `${totalSummary} • Total: +${exerciseBurn} kcal burned`
@@ -1249,7 +1343,7 @@
         `).join('');
       }
 
-      // Meal List
+      // Meals list
       const mealList = document.getElementById('mealList');
       if (!appData.meals || !appData.meals.length) {
         mealList.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No meals logged yet today.</p>';
@@ -1261,18 +1355,22 @@
               <p class="text-[10px] text-slate-400">${m.time} • <span class="text-emerald-400">${m.protein}</span></p>
             </div>
             <div class="flex items-center space-x-2">
-              <span class="font-mono text-amber-400 text-[11px]">${m.kcal} kcal</span>
+              <span class="font-mono text-amber-400 text-[11px]">~${m.kcal} kcal</span>
               <button onclick="deleteMeal(${idx})" class="text-slate-500 hover:text-rose-400 font-bold px-1">✕</button>
             </div>
           </div>
         `).join('');
       }
 
+      updateLiveWalkUI();
+      updateLiveSleepUI();
       renderReminders();
     }
 
     updateExerciseCard();
     setInterval(updateFastingCycle, 1000);
+    setInterval(updateLiveWalkUI, 1000);
+    setInterval(updateLiveSleepUI, 1000);
     setInterval(checkReminders, 15000);
     updateFastingCycle();
   </script>
