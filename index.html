@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Health Buddy Pro • Shift, Reminders & Nutrition</title>
+  <title>Health Buddy Pro • Shift, Fasting & Movement</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -13,14 +13,27 @@
       transform: rotate(-90deg);
       transform-origin: 50% 50%;
     }
-    @keyframes pulseRing {
-      0% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.05); opacity: 1; }
-      100% { transform: scale(0.95); opacity: 0.8; }
+    /* Smooth CSS Keyframe Animations for Exercise SVG Graphics */
+    @keyframes pushAwayAnim {
+      0%, 100% { transform: rotate(0deg) translate(0, 0); }
+      50% { transform: rotate(14deg) translate(6px, 4px); }
     }
-    .exercise-anim {
-      animation: pulseRing 2.5s infinite ease-in-out;
+    @keyframes squatAnim {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(10px); }
     }
+    @keyframes kneeTuckAnim {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-35deg) translate(-2px, -6px); }
+    }
+    @keyframes calfPumpAnim {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .anim-push { animation: pushAwayAnim 2s infinite ease-in-out; transform-origin: 20px 48px; }
+    .anim-squat { animation: squatAnim 2.2s infinite ease-in-out; }
+    .anim-knee { animation: kneeTuckAnim 1.8s infinite ease-in-out; transform-origin: 24px 34px; }
+    .anim-calf { animation: calfPumpAnim 1.5s infinite ease-in-out; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 antialiased min-h-screen pb-20">
@@ -62,13 +75,13 @@
       <span id="bannerBadge" class="text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-300">Active</span>
     </div>
 
-    <!-- Hydration Warning Alert Banner (Smart Trigger) -->
+    <!-- Hydration Alert Checkpoint -->
     <div id="hydrationNudgeBanner" class="hidden bg-amber-950/70 border border-amber-700/60 p-3 rounded-xl text-xs flex items-center justify-between">
       <div class="flex items-center space-x-2">
         <span class="text-lg">💧</span>
         <div>
-          <p class="font-bold text-amber-300">Hydration Checkpoint</p>
-          <p class="text-[10px] text-amber-200/80">Mid-shift dip detected. Drink a glass of water to clear fatigue.</p>
+          <p class="font-bold text-amber-300">Mid-Shift Hydration Nudge</p>
+          <p class="text-[10px] text-amber-200/80">Water intake is under 1,000ml. Drink a glass to prevent shift fatigue.</p>
         </div>
       </div>
       <button onclick="addWater(250)" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg shadow">
@@ -76,19 +89,18 @@
       </button>
     </div>
 
-    <!-- Weight Hub: Line Graph, Progress Milestones & Next Weigh-In -->
+    <!-- Weight Hub: 123.4 kg Baseline, Sunday 3:00 PM Anchor & SVG Trend -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Weight & Trend Tracker</h2>
-          <p id="nextWeighInText" class="text-[10px] text-slate-500">Next weigh-in: Sunday</p>
+          <p id="nextWeighInText" class="text-[10px] text-slate-500">Next weigh-in: Sunday 3:00 PM (Post-Sleep)</p>
         </div>
         <button onclick="logWeeklyWeight()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-2.5 py-1 rounded-lg border border-slate-700">
           ⚖️ Log Weight
         </button>
       </div>
 
-      <!-- Current Weight & Milestone Cards -->
       <div class="grid grid-cols-3 gap-2 text-center text-xs">
         <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
           <p class="text-[9px] uppercase font-semibold text-slate-400">Current</p>
@@ -96,7 +108,7 @@
           <p id="bmrLabel" class="text-[9px] text-slate-500">BMR: ~2,150k</p>
         </div>
         <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
-          <p class="text-[9px] uppercase font-semibold text-slate-400">Next Target</p>
+          <p class="text-[9px] uppercase font-semibold text-slate-400">Next Goal</p>
           <p id="nextMilestoneVal" class="text-base font-extrabold text-indigo-400 mt-0.5">120.0 kg</p>
           <p id="milestoneGapVal" class="text-[9px] text-indigo-300">3.4 kg to go</p>
         </div>
@@ -107,15 +119,63 @@
         </div>
       </div>
 
-      <!-- Visual Line Graph (SVG) -->
+      <!-- Clean SVG Trend Chart -->
       <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
         <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
-          <span>Weekly Weight Trend</span>
-          <span id="graphRangeText">Past Entries</span>
+          <span>Weekly Progress Chart</span>
+          <span id="graphRangeText">Starting Baseline</span>
         </div>
-        <div class="w-full h-28 flex items-center justify-center">
-          <svg id="weightSvgChart" class="w-full h-full overflow-visible" viewBox="0 0 320 100"></svg>
+        <div class="w-full h-24 flex items-center justify-center">
+          <svg id="weightSvgChart" class="w-full h-full overflow-visible" viewBox="0 0 320 85"></svg>
         </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Rolling Fasting Engine & OMAD Progression -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center relative shadow-lg space-y-4">
+      <!-- Target Goal Selector -->
+      <div class="w-full flex items-center justify-between border-b border-slate-800/80 pb-3">
+        <div>
+          <span class="text-xs font-bold text-white uppercase tracking-wider">Fasting Target</span>
+          <p id="fastingStageGoalText" class="text-[10px] text-slate-400">Road to One Meal A Day (OMAD)</p>
+        </div>
+        <select id="fastingTargetSelect" onchange="changeFastingTarget()" class="bg-slate-950 border border-slate-700 text-amber-300 font-bold text-xs rounded-lg px-2.5 py-1.5 outline-none">
+          <option value="15">15 Hours (15:9 Base)</option>
+          <option value="16">16 Hours (16:8 Classic)</option>
+          <option value="18">18 Hours (18:6 Shift Clean)</option>
+          <option value="20">20 Hours (Warrior Mode)</option>
+          <option value="23">23 Hours (Full OMAD)</option>
+        </select>
+      </div>
+
+      <!-- Circular Progress Display -->
+      <div class="relative w-64 h-64 flex items-center justify-center">
+        <svg class="w-full h-full" viewBox="0 0 240 240">
+          <circle cx="120" cy="120" r="100" stroke="#1e293b" stroke-width="14" fill="transparent" />
+          <circle id="progressCircle" class="progress-ring__circle" cx="120" cy="120" r="100" stroke="#f59e0b" stroke-width="14" stroke-linecap="round" fill="transparent" stroke-dasharray="628.3" stroke-dashoffset="628.3" />
+        </svg>
+
+        <div class="absolute flex flex-col items-center text-center px-4">
+          <span id="fastingStateLabel" class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">FASTING</span>
+          <span id="timerCountdown" class="text-3xl font-black text-white font-mono">00:00:00</span>
+          <span id="subTimerLabel" class="text-xs text-slate-400 mt-1">remaining to target</span>
+          <div id="stageBadge" class="mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+            Active Fat Oxidation
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic Start/Stop Fast & Kitchen Lock Control -->
+      <div class="w-full space-y-2 pt-1">
+        <div class="flex gap-2">
+          <button onclick="startFastNow()" id="fastToggleBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-2.5 rounded-lg transition shadow">
+            🔒 Lock Kitchen / Start Fast
+          </button>
+          <button onclick="resetFastTimePrompt()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-lg border border-slate-700">
+            ⚙️ Edit Time
+          </button>
+        </div>
+        <p id="fastAnchorStatusText" class="text-[10px] text-slate-500 text-center italic">Fast started at --:--</p>
       </div>
     </div>
 
@@ -147,36 +207,7 @@
       </div>
     </div>
 
-    <!-- Fasting Circular Gauge -->
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative shadow-lg">
-      <div class="relative w-64 h-64 flex items-center justify-center">
-        <svg class="w-full h-full" viewBox="0 0 240 240">
-          <circle cx="120" cy="120" r="100" stroke="#1e293b" stroke-width="14" fill="transparent" />
-          <circle id="progressCircle" class="progress-ring__circle" cx="120" cy="120" r="100" stroke="#f59e0b" stroke-width="14" stroke-linecap="round" fill="transparent" stroke-dasharray="628.3" stroke-dashoffset="628.3" />
-        </svg>
-
-        <div class="absolute flex flex-col items-center text-center px-4">
-          <span id="fastingStateLabel" class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">FASTING</span>
-          <span id="timerCountdown" class="text-3xl font-black text-white font-mono">00:00:00</span>
-          <span id="subTimerLabel" class="text-xs text-slate-400 mt-1">remaining until 3:00 PM</span>
-          <div id="stageBadge" class="mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-            Fat Oxidation
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-4 w-full bg-slate-950/60 rounded-xl p-3 border border-slate-800 text-xs space-y-1">
-        <div class="flex justify-between items-center">
-          <span class="font-bold text-slate-300">Metabolic Mode:</span>
-          <span id="stageHoursDone" class="text-slate-400">0h completed</span>
-        </div>
-        <p id="stageDescription" class="text-slate-400 text-[11px] leading-relaxed">
-          Calculating metabolic state...
-        </p>
-      </div>
-    </div>
-
-    <!-- DYNAMIC 1-TAP TRACKERS: LIVE MORNING WALK & LIVE SLEEP TRACKER -->
+    <!-- 1-TAP TRACKERS: LIVE MORNING WALK & LIVE DAY SLEEP -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <!-- 1. Real-Time 6:00 AM Walk Tracker (Naic, Cavite Heat Adjusted) -->
       <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3">
@@ -244,7 +275,7 @@
       </div>
     </div>
 
-    <!-- Hydration & Scheduled Reminders -->
+    <!-- Hydration Tracker -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
@@ -255,6 +286,102 @@
           <button onclick="addWater(250)" class="bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-xs font-bold px-2.5 py-1.5 rounded-lg">+250ml</button>
           <button onclick="addWater(500)" class="bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-xs font-bold px-2.5 py-1.5 rounded-lg">+500ml</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Visual Bodyweight Movement Engine (Zero Equipment, 123.4kg Calibrated) -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-sm font-bold text-white">Desk Break • Visual Bodyweight Guide</h2>
+          <span id="exerciseCategoryBadge" class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Upper Body & Core</span>
+        </div>
+        <button onclick="cycleExercise()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
+          🔄 Next Exercise
+        </button>
+      </div>
+
+      <!-- Main Visual Guideline Card with Animated SVG -->
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3.5">
+            <!-- Animated SVG Container -->
+            <div id="exerciseSvgContainer" class="w-16 h-16 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-1.5 shrink-0">
+              <!-- Dynamically rendered -->
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Desk Push-Aways</p>
+                <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~4 kcal</span>
+              </div>
+              <p id="exerciseTargetZone" class="text-[10px] text-indigo-300 font-semibold mt-0.5">Target: Chest, Triceps & Core</p>
+              <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5 leading-snug">Hands shoulder-width on desk edge, lean in and push away smoothly.</p>
+            </div>
+          </div>
+          <button onclick="completeCurrentExercise()" class="ml-2 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow">
+            ✓ Done
+          </button>
+        </div>
+
+        <!-- 3-Point Joint-Safe Checklist -->
+        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-[11px] space-y-1">
+          <p class="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Proper Form & Safety Checklist:</p>
+          <ul id="exerciseSafetyCues" class="text-slate-400 space-y-0.5 list-disc list-inside"></ul>
+        </div>
+      </div>
+
+      <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 text-xs">
+        <p class="font-semibold text-slate-300 mb-1">Today's Accumulated Output:</p>
+        <p id="cumulativeOutput" class="text-slate-400 text-[11px]">0 movement sets completed yet.</p>
+      </div>
+
+      <div class="space-y-1.5 pt-1">
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed Timeline</p>
+        <div id="exerciseFeed" class="divide-y divide-slate-800 max-h-32 overflow-y-auto text-xs">
+          <p class="text-slate-500 text-center py-2 text-[11px]">Ready for your first break.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3-in-1 Nutrition Engine with Voice Dictation (🎙️) & Fasting Guardrail -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <h2 class="text-sm font-bold text-white">Smart Meal & Nutrition Logger</h2>
+        <span class="text-[10px] text-slate-500">Voice Dictation • Guardrail Active</span>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center space-x-1.5">
+          <input type="text" id="mealInput" oninput="liveEstimateMeal()" placeholder="e.g. black coffee, 6 pcs siomai, bangus, 1 cup rice" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
+          <button type="button" id="mealInputMicBtn" onclick="startDictation('mealInput', liveEstimateMeal)" title="Speak meal description" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2.5 rounded-lg border border-slate-700 text-sm">
+            🎙️
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-xs">
+          <div>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Auto / Editable):</label>
+            <div class="flex items-center">
+              <input type="number" id="mealKcalInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 font-bold outline-none" />
+              <span class="ml-1 text-[11px] text-slate-500">kcal</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Protein (Auto / Editable):</label>
+            <div class="flex items-center">
+              <input type="number" id="mealProteinInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-400 font-bold outline-none" />
+              <span class="ml-1 text-[11px] text-slate-500">g</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="commitMeal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2 rounded-lg transition">
+          Record Meal
+        </button>
+      </div>
+
+      <div id="mealList" class="divide-y divide-slate-800 max-h-36 overflow-y-auto text-xs pt-1">
+        <p class="text-slate-500 text-center py-2">Loading cloud meals...</p>
       </div>
     </div>
 
@@ -313,105 +440,6 @@
       <div id="remindersList" class="space-y-2"></div>
     </div>
 
-    <!-- Movement Break Generator with Visual Guideline & Safety Checklist -->
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-      <div class="flex justify-between items-center">
-        <div>
-          <h2 class="text-sm font-bold text-white">Desk Break & Movement Guide</h2>
-          <span id="exerciseCategoryBadge" class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Zone: Equipment / Chest</span>
-        </div>
-        <button onclick="cycleExercise()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
-          🔄 Next Exercise
-        </button>
-      </div>
-
-      <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
-        <div class="flex items-start justify-between">
-          <div class="flex items-center space-x-3">
-            <div id="exerciseVisualIcon" class="w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-2 text-2xl exercise-anim">
-              💪
-            </div>
-            <div>
-              <div class="flex items-center space-x-2">
-                <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Twister Chest Squeezes</p>
-                <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~7 kcal</span>
-              </div>
-              <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5 leading-snug">Hold handles at chest height, compress bars inward, hold 2s.</p>
-            </div>
-          </div>
-          <button onclick="completeCurrentExercise()" class="ml-2 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow">
-            ✓ Done
-          </button>
-        </div>
-
-        <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-[11px] space-y-1">
-          <p class="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Proper Form & Safety Cues:</p>
-          <ul id="exerciseSafetyCues" class="text-slate-400 space-y-0.5 list-disc list-inside"></ul>
-        </div>
-
-        <div class="pt-1 flex items-center justify-between text-[11px]">
-          <span class="text-slate-500">Joint check:</span>
-          <button onclick="flagJointIssue()" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-rose-950 hover:text-rose-300 text-slate-400 border border-slate-800">
-            ⚠️ Knees/Joints Tender
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 text-xs">
-        <p class="font-semibold text-slate-300 mb-1">Today's Output & Active Burn:</p>
-        <p id="cumulativeOutput" class="text-slate-400 text-[11px]">0 movement sets completed yet.</p>
-      </div>
-
-      <div class="space-y-1.5 pt-1">
-        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed Timeline</p>
-        <div id="exerciseFeed" class="divide-y divide-slate-800 max-h-32 overflow-y-auto text-xs">
-          <p class="text-slate-500 text-center py-2 text-[11px]">Ready for your first break.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- 3-in-1 Hybrid Nutrition Engine with Fasting Guardrail & Voice Dictation 🎙️ -->
-    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-      <div class="flex justify-between items-center">
-        <h2 class="text-sm font-bold text-white">Smart Meal & Nutrition Logger</h2>
-        <span class="text-[10px] text-slate-500">Fasting Guardrail Active</span>
-      </div>
-
-      <div class="space-y-2">
-        <div class="flex items-center space-x-1.5">
-          <input type="text" id="mealInput" oninput="liveEstimateMeal()" placeholder="e.g. black coffee, 6 pcs siomai, bangus, 1 cup rice" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
-          <button type="button" id="mealInputMicBtn" onclick="startDictation('mealInput', liveEstimateMeal)" title="Speak meal description" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2.5 rounded-lg border border-slate-700 text-sm">
-            🎙️
-          </button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-xs">
-          <div>
-            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Auto / Editable):</label>
-            <div class="flex items-center">
-              <input type="number" id="mealKcalInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 font-bold outline-none" />
-              <span class="ml-1 text-[11px] text-slate-500">kcal</span>
-            </div>
-          </div>
-          <div>
-            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Protein (Auto / Editable):</label>
-            <div class="flex items-center">
-              <input type="number" id="mealProteinInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-400 font-bold outline-none" />
-              <span class="ml-1 text-[11px] text-slate-500">g</span>
-            </div>
-          </div>
-        </div>
-
-        <button onclick="commitMeal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2 rounded-lg transition">
-          Record Meal
-        </button>
-      </div>
-
-      <div id="mealList" class="divide-y divide-slate-800 max-h-36 overflow-y-auto text-xs pt-1">
-        <p class="text-slate-500 text-center py-2">Loading cloud meals...</p>
-      </div>
-    </div>
-
   </div>
 
   <script>
@@ -434,13 +462,12 @@
 
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
 
-    let userWeight = 123.4; // Updated starting weight
+    let userWeight = 123.4;
+    // Official Baseline starts clean at 123.4 kg on Oct 26, 2026
     let weightHistory = [
-      { date: "Oct 18", weight: 124.5 },
-      { date: "Oct 25", weight: 123.4 }
+      { date: "Oct 26", weight: 123.4, note: "Initial Official Weigh-in (1:30 AM)" }
     ];
 
-    // Dynamic BMR & TDEE Calculations (Mifflin-St Jeor formula for 36M, 175cm)
     function calculateBMR(w) {
       return Math.round(10 * w + 6.25 * 175 - 5 * 36 + 5);
     }
@@ -448,89 +475,113 @@
       return Math.round(calculateBMR(w) * 1.2);
     }
 
+    // 4 Bodyweight Movements with Custom SVG Animations (Zero Joint Strain)
     const exercisePool = [
       {
-        category: "Equipment / Chest",
-        name: "12 Twister Chest Squeezes",
-        desc: "Hold handles at chest height, compress bars inward, hold 2s.",
-        reps: 12,
-        unit: "Twister Squeezes",
-        baseKcal: 7,
-        icon: "💪",
+        category: "Upper Body & Core",
+        name: "12 Desk Push-Aways",
+        targetZone: "Chest, Front Shoulders & Plank Core",
+        desc: "Hands on sturdy desk edge at a 45° angle. Lower chest smoothly and push away.",
+        baseKcal: 4,
+        svg: `
+          <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+            <!-- Desk Surface -->
+            <line x1="42" y1="28" x2="60" y2="28" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" />
+            <line x1="52" y1="28" x2="52" y2="58" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" />
+            <!-- Animated Body Leaning in -->
+            <g class="anim-push" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
+              <circle cx="28" cy="18" r="4" fill="#f59e0b" />
+              <line x1="28" y1="22" x2="20" y2="44" />
+              <line x1="20" y1="44" x2="16" y2="58" />
+              <line x1="26" y1="28" x2="42" y2="30" stroke="#10b981" />
+            </g>
+          </svg>
+        `,
         cues: [
-          "Keep elbows up parallel to the floor (do not drop into ribs).",
-          "Compress inward smoothly; pause and hold squeeze for 2 seconds.",
-          "Keep lower back pressed against chair; breathe out on compression."
+          "Place hands shoulder-width on sturdy desk edge (eliminates wrist floor strain).",
+          "Lock core in a straight rigid plank; do not sag lower back.",
+          "Slow 2-second controlled lower; breathe out as you push away."
         ]
       },
       {
-        category: "Equipment / Arms",
-        name: "15 Twister Forearm & Arm Flexes",
-        desc: "Hold twister low or vertically, squeeze to work biceps and forearms.",
-        reps: 15,
-        unit: "Twister Flexes",
-        baseKcal: 5,
-        icon: "🦾",
-        cues: [
-          "Keep wrists straight to prevent tendon strain.",
-          "Squeeze handles with full grip before initiating the bend.",
-          "Slow 3-second negative return on every repetition."
-        ]
-      },
-      {
-        category: "Lower Body",
+        category: "Lower Body (Legs & Glutes)",
         name: "10 Chair Box Squats",
-        desc: "Sit fully in office chair, pause 1s, stand tall without hands.",
-        reps: 10,
-        unit: "Squats",
+        targetZone: "Quads, Glutes & Knee Stability",
+        desc: "Sit back into office chair, pause 1 second on the seat, then stand tall without using hands.",
         baseKcal: 5,
-        icon: "🪑",
+        svg: `
+          <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+            <!-- Office Chair -->
+            <line x1="16" y1="28" x2="16" y2="44" stroke="#64748b" stroke-width="3" stroke-linecap="round" />
+            <line x1="16" y1="44" x2="34" y2="44" stroke="#64748b" stroke-width="3" stroke-linecap="round" />
+            <line x1="25" y1="44" x2="25" y2="58" stroke="#64748b" stroke-width="2" />
+            <!-- Animated Figure Squatting -->
+            <g class="anim-squat" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
+              <circle cx="34" cy="16" r="4" fill="#f59e0b" />
+              <line x1="34" y1="20" x2="32" y2="36" />
+              <line x1="32" y1="36" x2="40" y2="44" />
+              <line x1="40" y1="44" x2="42" y2="58" />
+            </g>
+          </svg>
+        `,
         cues: [
-          "Push hips backward first as if reaching for the back of the seat.",
-          "Keep knees behind toes to remove patellar knee pressure.",
-          "Pause fully on the chair for 1 second before driving through heels."
+          "Push hips backward first toward chair seat (knees never shoot past toes).",
+          "Pause for 1 second fully seated on chair to break kinetic momentum.",
+          "Drive heels hard through the floor to stand upright; squeeze glutes at top."
         ]
       },
       {
-        category: "Upper Body",
-        name: "12 Desk Push-ups",
-        desc: "Palms on desk edge at an angle. Zero wrist floor strain.",
-        reps: 12,
-        unit: "Push-ups",
+        category: "Core & Posture",
+        name: "15 Seated Knee Tucks",
+        targetZone: "Lower Abdominals & Hip Flexors",
+        desc: "Sit tall on chair edge, grip seat armrests, and draw alternating knees up to chest.",
         baseKcal: 4,
-        icon: "🖥️",
+        svg: `
+          <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+            <!-- Chair Outline -->
+            <line x1="18" y1="26" x2="18" y2="46" stroke="#64748b" stroke-width="3" stroke-linecap="round" />
+            <line x1="18" y1="46" x2="38" y2="46" stroke="#64748b" stroke-width="3" stroke-linecap="round" />
+            <line x1="28" y1="46" x2="28" y2="58" stroke="#64748b" stroke-width="2" />
+            <!-- Seated Torso -->
+            <circle cx="26" cy="18" r="4" fill="#f59e0b" stroke="#f59e0b" stroke-width="2" />
+            <line x1="26" y1="22" x2="26" y2="44" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" />
+            <!-- Animated Knee Tucking Up -->
+            <g class="anim-knee" stroke="#10b981" stroke-width="2.5" stroke-linecap="round">
+              <line x1="26" y1="42" x2="38" y2="38" />
+              <line x1="38" y1="38" x2="42" y2="50" />
+            </g>
+          </svg>
+        `,
         cues: [
-          "Hands shoulder-width apart on sturdy desk edge.",
-          "Maintain a straight plank line from shoulders to heels.",
-          "Lower chest smoothly to desk without arching your neck."
+          "Keep torso tall and proud; do not round your back or hunch shoulders.",
+          "Pull knee high using lower abdominal muscles, not momentum.",
+          "100% zero floor strain and zero spinal compression."
         ]
       },
       {
-        category: "Posture & Core",
-        name: "20 Seated Knee Raises",
-        desc: "Sit tall, pull alternating knees to chest. Zero spinal pressure.",
-        reps: 20,
-        unit: "Knee Raises",
+        category: "Slump Buster & Circulation",
+        name: "15 Standing Calf Pumps",
+        targetZone: "Calf Muscle Pump & Venous Return",
+        desc: "Hands resting on chair back purely for balance. Lift heels high, pause 1s at top.",
         baseKcal: 4,
-        icon: "🦵",
+        svg: `
+          <svg class="w-12 h-12" viewBox="0 0 64 64" fill="none" stroke="currentColor">
+            <!-- Chair Back Rest -->
+            <line x1="42" y1="22" x2="42" y2="56" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" />
+            <!-- Animated Standing Figure Rising on Toes -->
+            <g class="anim-calf" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round">
+              <circle cx="26" cy="16" r="4" fill="#f59e0b" />
+              <line x1="26" y1="20" x2="26" y2="42" />
+              <line x1="26" y1="28" x2="38" y2="30" stroke="#38bdf8" />
+              <line x1="26" y1="42" x2="26" y2="54" />
+              <circle cx="26" cy="56" r="2" fill="#10b981" stroke="#10b981" />
+            </g>
+          </svg>
+        `,
         cues: [
-          "Sit tall on edge of chair with shoulders rolled back.",
-          "Lift knee toward chest using lower abdominal muscles.",
-          "Pause 1 second at top; do not lean backward."
-        ]
-      },
-      {
-        category: "Slump Buster",
-        name: "15 Standing Calf Raises",
-        desc: "Hands on chair back, lift heels high.",
-        reps: 15,
-        unit: "Calf Raises",
-        baseKcal: 4,
-        icon: "🦶",
-        cues: [
-          "Keep fingertips on chair back purely for balance.",
-          "Drive straight up onto balls of feet; hold peak for 1 second.",
-          "Pumps pooled venous blood from legs back to heart."
+          "Rest fingertips on chair back purely for balance, not support.",
+          "Drive straight up onto the balls of your feet; pause 1 second at top.",
+          "Forces pooled blood from legs back to heart to eliminate 3:00 AM drowsiness."
         ]
       }
     ];
@@ -556,6 +607,10 @@
       sleepPausedDurationMs: 0,
       sleepDurationHours: 0,
       sleepCompleted: false,
+      // Dynamic Fasting State
+      fastActive: true,
+      fastStartTime: Date.now() - (7 * 3600 * 1000), // Default rolling anchor
+      fastingGoalHours: 15, // 15h, 16h, 18h, 20h, 23h (OMAD)
       reminders: [
         { id: 1, label: "Pick up daughter at school", type: "weekday", time: "15:30", note: "Dismissal 4:00 PM (30 min early)", date: "", alertedToday: false }
       ]
@@ -566,7 +621,12 @@
       if (doc.exists) {
         const d = doc.data();
         if (d.weight) userWeight = d.weight;
-        if (d.history && Array.isArray(d.history)) weightHistory = d.history;
+        if (d.history && Array.isArray(d.history) && d.history.length > 0) {
+          weightHistory = d.history;
+        } else {
+          weightHistory = [{ date: "Oct 26", weight: 123.4, note: "Initial Official Weigh-in (1:30 AM)" }];
+          metaDocRef.set({ weight: 123.4, history: weightHistory }, { merge: true });
+        }
       } else {
         metaDocRef.set({ weight: userWeight, history: weightHistory });
       }
@@ -581,6 +641,9 @@
 
       if (doc.exists) {
         appData = Object.assign(appData, doc.data());
+        if (appData.fastingGoalHours) {
+          document.getElementById('fastingTargetSelect').value = String(appData.fastingGoalHours);
+        }
       } else {
         todayDocRef.set(appData);
       }
@@ -597,7 +660,7 @@
     }
 
     // ----------------------------------------------------
-    // 2. Weight Hub, Milestones & Dynamic SVG Graph
+    // 2. Weight Hub, Milestones & Clean SVG Trend
     // ----------------------------------------------------
     function renderWeightHub() {
       document.getElementById('currentWeightVal').textContent = `${userWeight} kg`;
@@ -605,7 +668,6 @@
       document.getElementById('baseTdeeDisplay').textContent = `Base Burn: ${calculateSedentaryTDEE(userWeight).toLocaleString()} kcal`;
       document.getElementById('walkRateSubtitle').textContent = `Naic Stroll (~${(userWeight * 0.057).toFixed(1)} kcal/min)`;
 
-      // Target milestones
       const milestones = [120, 115, 110, 105, 100, 95];
       let nextM = milestones.find(m => m < userWeight) || 120;
       document.getElementById('nextMilestoneVal').textContent = `${nextM}.0 kg`;
@@ -616,32 +678,68 @@
       const totalLost = (startWeight - userWeight).toFixed(1);
       document.getElementById('totalWeightLostVal').textContent = `${totalLost > 0 ? '-' + totalLost : totalLost} kg`;
 
-      // Next weigh-in (next Sunday)
+      // Next weigh-in countdown anchored strictly to SUNDAY at 3:00 PM
       const now = new Date();
-      const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
-      document.getElementById('nextWeighInText').textContent = daysUntilSunday === 0 ? "Next weigh-in: Today (Sunday post-sleep)!" : `Next weigh-in: Sunday (in ${daysUntilSunday} day${daysUntilSunday > 1 ? 's' : ''})`;
+      let targetSunday = new Date(now);
+      const day = now.getDay();
+      let diff = (7 - day) % 7;
+      targetSunday.setDate(now.getDate() + diff);
+      targetSunday.setHours(15, 0, 0, 0); // 3:00 PM
+
+      // If Sunday after 3:00 PM, aim for next Sunday
+      if (now > targetSunday) {
+        targetSunday.setDate(targetSunday.getDate() + 7);
+      }
+
+      const hoursUntilSunday = Math.max(0, Math.round((targetSunday.getTime() - now.getTime()) / (3600 * 1000)));
+      const daysUntilSunday = Math.floor(hoursUntilSunday / 24);
+      const remHours = hoursUntilSunday % 24;
+
+      if (daysUntilSunday === 0 && remHours === 0) {
+        document.getElementById('nextWeighInText').textContent = "Next weigh-in: TODAY (Sunday Post-Sleep 3:00 PM)";
+      } else {
+        document.getElementById('nextWeighInText').textContent = `Next weigh-in: Sun 3PM (${daysUntilSunday}d ${remHours}h left)`;
+      }
 
       renderWeightSvg();
     }
 
     function renderWeightSvg() {
       const svg = document.getElementById('weightSvgChart');
-      if (!weightHistory || weightHistory.length < 2) {
-        svg.innerHTML = '<text x="160" y="50" fill="#64748b" font-size="11" text-anchor="middle">Log another week to plot trend line.</text>';
-        return;
-      }
-
-      const pts = weightHistory;
-      const weights = pts.map(p => p.weight);
-      const minW = Math.min(...weights) - 1;
-      const maxW = Math.max(...weights) + 1;
       const width = 320;
-      const height = 90;
+      const height = 85;
       const padX = 25;
       const padY = 15;
 
-      const stepX = (width - 2 * padX) / (pts.length - 1);
-      const coords = pts.map((p, idx) => {
+      if (!weightHistory || weightHistory.length === 0) {
+        svg.innerHTML = '<text x="160" y="45" fill="#64748b" font-size="11" text-anchor="middle">Official weight: 123.4 kg</text>';
+        return;
+      }
+
+      // If single entry: display clean anchor dot and dotted trajectory line to next milestone (120.0 kg)
+      if (weightHistory.length === 1) {
+        const pt = weightHistory[0];
+        svg.innerHTML = `
+          <!-- Baseline Guide -->
+          <line x1="${padX}" y1="35" x2="${width - padX}" y2="35" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4,4" />
+          <circle cx="${padX + 20}" cy="35" r="5" fill="#0f172a" stroke="#f59e0b" stroke-width="3" />
+          <text x="${padX + 20}" y="22" fill="#fbbf24" font-size="10" font-weight="bold" font-family="monospace" text-anchor="middle">${pt.weight} kg</text>
+          <text x="${padX + 20}" y="52" fill="#64748b" font-size="9" text-anchor="middle">Oct 26 (Day 1)</text>
+
+          <!-- Projected Pathway to 120 kg -->
+          <line x1="${padX + 30}" y1="35" x2="${width - padX - 30}" y2="58" stroke="#10b981" stroke-width="2" stroke-dasharray="3,3" opacity="0.6" />
+          <circle cx="${width - padX - 30}" cy="58" r="4" fill="#0f172a" stroke="#10b981" stroke-width="2" opacity="0.6" />
+          <text x="${width - padX - 30}" y="74" fill="#10b981" font-size="9" text-anchor="middle">Goal: 120.0 kg</text>
+        `;
+        return;
+      }
+
+      const weights = weightHistory.map(p => p.weight);
+      const minW = Math.min(...weights) - 1;
+      const maxW = Math.max(...weights) + 1;
+      const stepX = (width - 2 * padX) / (weightHistory.length - 1);
+
+      const coords = weightHistory.map((p, idx) => {
         const x = padX + (idx * stepX);
         const y = height - padY - (((p.weight - minW) / (maxW - minW || 1)) * (height - 2 * padY));
         return { x, y, ...p };
@@ -656,16 +754,13 @@
             <stop offset="100%" stop-color="#10b981" />
           </linearGradient>
         </defs>
-        <!-- Horizontal Guide Line -->
-        <line x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}" stroke="#1e293b" stroke-width="1" stroke-dasharray="3,3" />
-        <!-- Trend Path -->
         <path d="${pathD}" fill="none" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
       `;
 
       coords.forEach(c => {
         svgHtml += `
           <circle cx="${c.x}" cy="${c.y}" r="4" fill="#0f172a" stroke="#10b981" stroke-width="2" />
-          <text x="${c.x}" y="${c.y - 7}" fill="#94a3b8" font-size="9" font-family="monospace" text-anchor="middle">${c.weight}k</text>
+          <text x="${c.x}" y="${c.y - 7}" fill="#fbbf24" font-size="9" font-family="monospace" text-anchor="middle">${c.weight} kg</text>
           <text x="${c.x}" y="${height}" fill="#64748b" font-size="8" text-anchor="middle">${c.date}</text>
         `;
       });
@@ -674,7 +769,7 @@
     }
 
     async function logWeeklyWeight() {
-      const input = prompt(`Enter your weekly weigh-in in kg (Last: ${userWeight} kg):`, userWeight);
+      const input = prompt(`Enter your weekly weigh-in in kg (Post-sleep dry weight. Current: ${userWeight} kg):`, userWeight);
       if (!input) return;
       const parsed = parseFloat(input);
       if (isNaN(parsed) || parsed < 50 || parsed > 250) {
@@ -687,7 +782,7 @@
       const dateLabel = `${monthNames[now.getMonth()]} ${now.getDate()}`;
 
       weightHistory.push({ date: dateLabel, weight: userWeight });
-      if (weightHistory.length > 8) weightHistory.shift(); // Keep last 8 entries clean
+      if (weightHistory.length > 8) weightHistory.shift();
 
       await metaDocRef.set({ weight: userWeight, history: weightHistory, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
       renderWeightHub();
@@ -695,7 +790,172 @@
     }
 
     // ----------------------------------------------------
-    // 3. Fasting Guardrail & Food Engine
+    // 3. Dynamic Rolling Fasting Engine & OMAD Logic
+    // ----------------------------------------------------
+    function changeFastingTarget() {
+      const select = document.getElementById('fastingTargetSelect');
+      appData.fastingGoalHours = parseInt(select.value, 10);
+      pushUpdate();
+      updateRollingFasting();
+    }
+
+    function startFastNow() {
+      appData.fastActive = true;
+      appData.fastStartTime = Date.now();
+      pushUpdate();
+      updateRollingFasting();
+    }
+
+    function resetFastTimePrompt() {
+      const hoursAgo = prompt("How many hours ago did you finish eating? (e.g. 2 for 2 hours ago, 0 for right now):", "0");
+      if (hoursAgo === null) return;
+      const h = parseFloat(hoursAgo);
+      if (isNaN(h) || h < 0 || h > 48) {
+        alert("Enter a valid number of hours.");
+        return;
+      }
+      appData.fastActive = true;
+      appData.fastStartTime = Date.now() - (h * 3600 * 1000);
+      pushUpdate();
+      updateRollingFasting();
+    }
+
+    function updateRollingFasting() {
+      const circle = document.getElementById('progressCircle');
+      const timerCountdown = document.getElementById('timerCountdown');
+      const stateLabel = document.getElementById('fastingStateLabel');
+      const subTimerLabel = document.getElementById('subTimerLabel');
+      const stageBadge = document.getElementById('stageBadge');
+      const fastBtn = document.getElementById('fastToggleBtn');
+      const anchorText = document.getElementById('fastAnchorStatusText');
+      const stageGoalText = document.getElementById('fastingStageGoalText');
+
+      const targetHours = appData.fastingGoalHours || 15;
+
+      if (targetHours === 23) stageGoalText.textContent = "Peak Stage: One Meal A Day (OMAD)";
+      else if (targetHours >= 18) stageGoalText.textContent = `Advanced Clean Fast: ${targetHours} Hours`;
+      else stageGoalText.textContent = `Baseline Shift Fast: ${targetHours} Hours`;
+
+      if (!appData.fastActive || !appData.fastStartTime) {
+        stateLabel.textContent = "EATING WINDOW";
+        stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
+        circle.setAttribute("stroke", "#10b981");
+        circle.style.strokeDashoffset = 0;
+        timerCountdown.textContent = "KITCHEN OPEN";
+        subTimerLabel.textContent = "Tap lock when done eating";
+        fastBtn.textContent = "🔒 Lock Kitchen / Start Fast";
+        fastBtn.className = "w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-2.5 rounded-lg transition shadow";
+        stageBadge.textContent = "Refueling & Recovery";
+        stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        anchorText.textContent = "Currently in your eating window.";
+        return;
+      }
+
+      fastBtn.textContent = "🔓 Unlock Eating Window";
+      fastBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-lg border border-slate-700";
+
+      const elapsedMs = Math.max(0, Date.now() - appData.fastStartTime);
+      const elapsedSec = Math.floor(elapsedMs / 1000);
+      const elapsedHours = elapsedSec / 3600;
+      const targetSec = targetHours * 3600;
+
+      const startDateObj = new Date(appData.fastStartTime);
+      anchorText.textContent = `Fast locked at ${startDateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${elapsedHours.toFixed(1)}h completed)`;
+
+      if (elapsedSec < targetSec) {
+        stateLabel.textContent = "FASTING";
+        stateLabel.className = "text-xs uppercase tracking-widest text-amber-400 font-bold mb-1";
+        circle.setAttribute("stroke", "#f59e0b");
+
+        const remainingSec = targetSec - elapsedSec;
+        const h = Math.floor(remainingSec / 3600);
+        const m = Math.floor((remainingSec % 3600) / 60);
+        const s = remainingSec % 60;
+        timerCountdown.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        subTimerLabel.textContent = `remaining to ${targetHours}-hr target`;
+
+        const pct = elapsedSec / targetSec;
+        circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
+
+        if (elapsedHours < 4) {
+          stageBadge.textContent = "Digestion & Glucose Reset";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
+        } else if (elapsedHours < 8) {
+          stageBadge.textContent = "Glycogen Depletion";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
+        } else if (elapsedHours < 12) {
+          stageBadge.textContent = "Active Fat Oxidation";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        } else {
+          stageBadge.textContent = "Peak Ketosis & Deep Fat Burn";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        }
+      } else {
+        // Fast Target Achieved (Bonus Hours)
+        stateLabel.textContent = "TARGET REACHED! 🎉";
+        stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
+        circle.setAttribute("stroke", "#10b981");
+        circle.style.strokeDashoffset = 0;
+
+        const bonusSec = elapsedSec - targetSec;
+        const h = Math.floor(bonusSec / 3600);
+        const m = Math.floor((bonusSec % 3600) / 60);
+        const s = bonusSec % 60;
+        timerCountdown.textContent = `+${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        subTimerLabel.textContent = `bonus time beyond ${targetHours}h`;
+        stageBadge.textContent = "Deep Autophagy & Peak Fat Burn";
+        stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+      }
+    }
+
+    // ----------------------------------------------------
+    // 4. Visual Bodyweight Movement Engine
+    // ----------------------------------------------------
+    function cycleExercise() {
+      currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
+      updateExerciseCard();
+    }
+
+    function updateExerciseCard() {
+      const ex = exercisePool[currentPoolIndex];
+      const dynKcal = Math.round(ex.baseKcal * (userWeight / 123.4));
+      document.getElementById('exerciseCategoryBadge').textContent = ex.category;
+      document.getElementById('exerciseName').textContent = ex.name;
+      document.getElementById('exerciseTargetZone').textContent = `Target: ${ex.targetZone}`;
+      document.getElementById('exerciseDesc').textContent = ex.desc;
+      document.getElementById('exerciseBurnBadge').textContent = `~${dynKcal} kcal`;
+      document.getElementById('exerciseSvgContainer').innerHTML = ex.svg;
+
+      const cueList = document.getElementById('exerciseSafetyCues');
+      cueList.innerHTML = ex.cues.map(c => `<li>${c}</li>`).join('');
+    }
+
+    function completeCurrentExercise() {
+      const ex = exercisePool[currentPoolIndex];
+      const dynKcal = Math.round(ex.baseKcal * (userWeight / 123.4));
+      if (!appData.exerciseLogs) appData.exerciseLogs = [];
+
+      appData.exerciseLogs.unshift({
+        id: Date.now(),
+        name: ex.name,
+        category: ex.category,
+        reps: ex.name.split(' ')[0],
+        unit: "Sets",
+        kcal: dynKcal,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      pushUpdate();
+      cycleExercise();
+    }
+
+    function deleteExerciseLog(id) {
+      appData.exerciseLogs = appData.exerciseLogs.filter(e => e.id !== id);
+      pushUpdate();
+    }
+
+    // ----------------------------------------------------
+    // 5. 3-in-1 Nutrition Engine with Voice & Fasting Guardrail
     // ----------------------------------------------------
     function parseQuantity(text, keyword) {
       const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc|cups|cup|slices|slice|mugs|mug)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
@@ -765,7 +1025,6 @@
         protein += 24;
         matched = true;
       }
-
       if (text.includes('beef') || text.includes('tapa') || text.includes('bistek') || text.includes('bulalo')) {
         kcal += 280;
         protein += 26;
@@ -822,17 +1081,23 @@
 
       const kcal = parseInt(kcalVal, 10);
 
-      // Fasting Breaker Guardrail Check (12:00 AM to 3:00 PM)
-      const now = new Date();
-      const currentSeconds = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
-      const FAST_END_SECONDS = 15 * 3600;
+      // Fasting Guardrail Check
+      if (appData.fastActive && appData.fastStartTime && kcal > 15) {
+        const elapsedSec = Math.floor((Date.now() - appData.fastStartTime) / 1000);
+        const elapsedH = (elapsedSec / 3600).toFixed(1);
+        const targetH = appData.fastingGoalHours || 15;
 
-      if (currentSeconds < FAST_END_SECONDS && kcal > 15) {
-        const hoursDone = (currentSeconds / 3600).toFixed(1);
-        const confirmBreak = confirm(
-          `⚠️ FASTING GUARDRAIL:\n\nYour target eating window opens at 3:00 PM. You have currently fasted for ${hoursDone} hours.\n\nLogging this food (${kcal} kcal) will break your fast. Are you sure you want to proceed?`
-        );
-        if (!confirmBreak) return;
+        if (elapsedSec < targetH * 3600) {
+          const confirmBreak = confirm(
+            `⚠️ FASTING GUARDRAIL:\n\nYou are currently ${elapsedH} hours into your ${targetH}-hour fast.\n\nLogging this food (${kcal} kcal) will break your fast. Proceed?`
+          );
+          if (!confirmBreak) return;
+          // Unlocks fasting and opens feeding window
+          appData.fastActive = false;
+        } else {
+          // Completed target, opening eating window
+          appData.fastActive = false;
+        }
       }
 
       if (!appData.meals) appData.meals = [];
@@ -855,7 +1120,7 @@
     }
 
     // ----------------------------------------------------
-    // 4. Live Walk & Live Sleep Sessions
+    // 6. Live Walk, Sleep & Shift Schedule
     // ----------------------------------------------------
     function toggleWalkSession() {
       if (!appData.walkActive) {
@@ -894,7 +1159,7 @@
         const s = elapsedSec % 60;
         document.getElementById('liveWalkTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
         const liveKcal = Math.round((elapsedSec / 60) * (userWeight * 0.057));
-        document.getElementById('liveWalkBurn').textContent = `+${liveKcal} kcal burned (Dynamic)`;
+        document.getElementById('liveWalkBurn').textContent = `+${liveKcal} kcal burned (Naic stroll)`;
       } else if (appData.walkCompleted) {
         activeBox.classList.add('hidden');
         completedBox.classList.remove('hidden');
@@ -1010,59 +1275,37 @@
       }
     }
 
-    // ----------------------------------------------------
-    // 5. Fasting & Schedule (Canadian 9 PM - 5 AM, Walk 6 AM)
-    // ----------------------------------------------------
     function isRestDay(now) {
       const day = now.getDay();
       const hours = now.getHours();
-      // Saturday 6:00 AM onwards
       if (day === 6 && hours >= 6) return true;
       if (day === 0) return true;
-      // Monday before 9:00 PM kickoff
       if (day === 1 && hours < 21) return true;
       return false;
     }
 
-    function updateFastingCycle() {
+    function updateShiftStatus() {
       const now = new Date();
       const hours = now.getHours();
-      const minutes = now.getMinutes();
-      const seconds = now.getSeconds();
-      const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-      const FAST_END_SECONDS = 15 * 3600;
-
-      const circle = document.getElementById('progressCircle');
-      const timerCountdown = document.getElementById('timerCountdown');
-      const stateLabel = document.getElementById('fastingStateLabel');
-      const subTimerLabel = document.getElementById('subTimerLabel');
-      const stageBadge = document.getElementById('stageBadge');
-      const stageDesc = document.getElementById('stageDescription');
-      const stageHours = document.getElementById('stageHoursDone');
-
       const banner = document.getElementById('statusBanner');
       const bannerTitle = document.getElementById('bannerTitle');
       const bannerSub = document.getElementById('bannerSubtitle');
       const bannerBadge = document.getElementById('bannerBadge');
       const hydrationBanner = document.getElementById('hydrationNudgeBanner');
 
-      // Hydration Checkpoint (Trigger at 1:00 AM - 4:00 AM if water < 1000ml)
       if (hours >= 1 && hours < 5 && (appData.water || 0) < 1000) {
         hydrationBanner.classList.remove('hidden');
       } else {
         hydrationBanner.classList.add('hidden');
       }
 
-      const resting = isRestDay(now);
-
-      if (resting) {
+      if (isRestDay(now)) {
         banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-emerald-950/40 border-emerald-800/60";
         bannerTitle.textContent = "🌴 Weekend Rest & Recovery";
-        bannerSub.textContent = "Work shift off. Focus on family time, 6:00 AM walks, and fasting maintenance.";
+        bannerSub.textContent = "Work shift off. Focus on family time, 6:00 AM walks, and clean fasting.";
         bannerBadge.textContent = "Rest Days";
         bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-900 text-emerald-200 border border-emerald-700";
       } else {
-        // Canadian Work Cycle (9:00 PM to 5:00 AM shift)
         if (hours >= 21 || hours < 5) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-indigo-950/60 border-indigo-700/60";
           bannerTitle.textContent = "🇨🇦 9:00 PM – 5:00 AM Canadian Shift";
@@ -1072,7 +1315,7 @@
         } else if (hours >= 5 && hours < 6) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-amber-950/60 border-amber-700/60";
           bannerTitle.textContent = "☕ 5:00 AM – 6:00 AM Wind-Down Buffer";
-          bannerSub.textContent = "Shift finished. Relax and wait for wife's 6:00 AM logoff before the morning walk.";
+          bannerSub.textContent = "Shift finished. Relax and wait for wife's 6:00 AM logoff before morning walk.";
           bannerBadge.textContent = "Wind Down";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-amber-800 text-amber-200";
         } else if (hours >= 6 && hours < 7) {
@@ -1089,73 +1332,10 @@
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-400";
         }
       }
-
-      if (currentTotalSeconds < FAST_END_SECONDS) {
-        stateLabel.textContent = "FASTING";
-        stateLabel.className = "text-xs uppercase tracking-widest text-amber-400 font-bold mb-1";
-        circle.setAttribute("stroke", "#f59e0b");
-
-        const remainingSeconds = FAST_END_SECONDS - currentTotalSeconds;
-        const elapsedSeconds = currentTotalSeconds;
-        const elapsedHours = (elapsedSeconds / 3600).toFixed(1);
-
-        timerCountdown.textContent = formatSeconds(remainingSeconds);
-        subTimerLabel.textContent = "remaining until 3:00 PM eating window";
-        stageHours.textContent = `${elapsedHours} hrs completed`;
-
-        const pct = elapsedSeconds / FAST_END_SECONDS;
-        const offset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
-        circle.style.strokeDashoffset = offset;
-
-        if (elapsedSeconds < 4 * 3600) {
-          stageBadge.textContent = "Digestion & Glucose Drop";
-          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
-          stageDesc.textContent = "Body processing late food. Blood sugar returning to baseline.";
-        } else if (elapsedSeconds < 8 * 3600) {
-          stageBadge.textContent = "Glycogen Depletion";
-          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
-          stageDesc.textContent = "Liver carbohydrate stores emptying. Body transitions toward fat burning.";
-        } else if (elapsedSeconds < 12 * 3600) {
-          stageBadge.textContent = "Active Fat Oxidation";
-          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
-          stageDesc.textContent = "Insulin fully suppressed. Fat stores actively broken down for energy.";
-        } else {
-          stageBadge.textContent = "Peak Fat Burn & Autophagy";
-          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-          stageDesc.textContent = "Maximum fat breakdown window before breaking fast.";
-        }
-      } else {
-        stateLabel.textContent = "EATING WINDOW";
-        stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
-        circle.setAttribute("stroke", "#10b981");
-
-        const secondsInEatingWindow = currentTotalSeconds - FAST_END_SECONDS;
-        const totalEatingWindow = (24 * 3600) - FAST_END_SECONDS;
-        const remainingToMidnight = (24 * 3600) - currentTotalSeconds;
-
-        timerCountdown.textContent = formatSeconds(remainingToMidnight);
-        subTimerLabel.textContent = "until midnight fasting cutoff";
-
-        const pct = secondsInEatingWindow / totalEatingWindow;
-        const offset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
-        circle.style.strokeDashoffset = offset;
-
-        stageBadge.textContent = "Feeding & Recovery";
-        stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-        stageHours.textContent = `${(secondsInEatingWindow / 3600).toFixed(1)} hrs in window`;
-        stageDesc.textContent = "Prioritize protein and water before the 12:00 midnight kitchen cutoff.";
-      }
-    }
-
-    function formatSeconds(totalSec) {
-      const h = Math.floor(totalSec / 3600);
-      const m = Math.floor((totalSec % 3600) / 60);
-      const s = totalSec % 60;
-      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
 
     // ----------------------------------------------------
-    // 6. Voice, Habits & Exercise
+    // 7. Voice Dictation & Reminders Engine
     // ----------------------------------------------------
     function startDictation(targetInputId, callback) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1185,57 +1365,6 @@
       pushUpdate();
     }
 
-    function cycleExercise() {
-      currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
-      updateExerciseCard();
-    }
-
-    function updateExerciseCard() {
-      const ex = exercisePool[currentPoolIndex];
-      const dynKcal = Math.round(ex.baseKcal * (userWeight / 123.4));
-      document.getElementById('exerciseCategoryBadge').textContent = `Zone: ${ex.category}`;
-      document.getElementById('exerciseName').textContent = ex.name;
-      document.getElementById('exerciseDesc').textContent = ex.desc;
-      document.getElementById('exerciseBurnBadge').textContent = `~${dynKcal} kcal`;
-      document.getElementById('exerciseVisualIcon').textContent = ex.icon;
-
-      const cueList = document.getElementById('exerciseSafetyCues');
-      cueList.innerHTML = ex.cues.map(c => `<li>${c}</li>`).join('');
-    }
-
-    function completeCurrentExercise() {
-      const ex = exercisePool[currentPoolIndex];
-      const dynKcal = Math.round(ex.baseKcal * (userWeight / 123.4));
-      if (!appData.exerciseLogs) appData.exerciseLogs = [];
-
-      appData.exerciseLogs.unshift({
-        id: Date.now(),
-        name: ex.name,
-        category: ex.category,
-        reps: ex.reps,
-        unit: ex.unit,
-        kcal: dynKcal,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      pushUpdate();
-      cycleExercise();
-    }
-
-    function flagJointIssue() {
-      alert("Prioritizing seated twister exercises and seated knee raises to keep your knees completely safe.");
-      currentPoolIndex = 0;
-      updateExerciseCard();
-    }
-
-    function deleteExerciseLog(id) {
-      appData.exerciseLogs = appData.exerciseLogs.filter(e => e.id !== id);
-      pushUpdate();
-    }
-
-    // ----------------------------------------------------
-    // 7. Alarms & Reminders Engine
-    // ----------------------------------------------------
     function toggleReminderForm() {
       document.getElementById('addReminderForm').classList.toggle('hidden');
     }
@@ -1350,7 +1479,7 @@
       const totals = {};
       logs.forEach(l => {
         exerciseBurn += (l.kcal || 0);
-        totals[l.unit] = (totals[l.unit] || 0) + l.reps;
+        totals[l.name] = (totals[l.name] || 0) + 1;
       });
 
       const walkBurn = appData.walkKcal || 0;
@@ -1379,7 +1508,7 @@
 
       document.getElementById('waterCount').textContent = `${appData.water || 0} ml / 3,000 ml`;
 
-      const totalSummary = Object.keys(totals).map(u => `${totals[u]} ${u}`).join(' • ');
+      const totalSummary = Object.keys(totals).map(k => `${totals[k]}x ${k}`).join(' • ');
       document.getElementById('cumulativeOutput').textContent = totalSummary
         ? `${totalSummary} • Total: +${exerciseBurn} kcal burned`
         : '0 movement sets completed yet.';
@@ -1427,11 +1556,13 @@
 
     updateExerciseCard();
     renderWeightHub();
-    setInterval(updateFastingCycle, 1000);
+    setInterval(updateRollingFasting, 1000);
+    setInterval(updateShiftStatus, 1000);
     setInterval(updateLiveWalkUI, 1000);
     setInterval(updateLiveSleepUI, 1000);
     setInterval(checkReminders, 15000);
-    updateFastingCycle();
+    updateRollingFasting();
+    updateShiftStatus();
   </script>
 </body>
 </html>
