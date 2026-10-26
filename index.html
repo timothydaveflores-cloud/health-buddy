@@ -181,8 +181,9 @@
       </div>
     </div>
 
-    <!-- 1-Tap Daily Habit Trackers -->
+    <!-- Shift Habit Trackers: Walk, Water & Sleep -->
     <div class="grid grid-cols-2 gap-3">
+      <!-- 6:00 AM Walk with Wife -->
       <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-2xl">🌅</span>
@@ -199,6 +200,7 @@
         </div>
       </div>
 
+      <!-- Water Intake -->
       <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-2xl">💧</span>
@@ -215,6 +217,43 @@
       </div>
     </div>
 
+    <!-- Shift Worker Sleep Hours & Weekly Weight -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Sleep Tracker (7 AM - 3 PM) -->
+      <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-2xl">🛌</span>
+          <span id="sleepDisplayBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">Not Logged</span>
+        </div>
+        <div class="mt-2">
+          <p class="text-xs font-bold text-white">Day Sleep</p>
+          <p class="text-[10px] text-slate-400">7:00 AM – 3:00 PM target</p>
+        </div>
+        <div class="mt-2 flex gap-1">
+          <button onclick="logSleep(6)" class="w-full bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-[10px] py-1 rounded border border-slate-700">6h</button>
+          <button onclick="logSleep(7)" class="w-full bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-[10px] py-1 rounded border border-slate-700">7h</button>
+          <button onclick="logSleep(8)" class="w-full bg-slate-800 hover:bg-indigo-950 hover:text-indigo-300 text-[10px] py-1 rounded border border-slate-700">8h</button>
+        </div>
+      </div>
+
+      <!-- Weekly Weight Tracker -->
+      <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+          <span class="text-2xl">⚖️</span>
+          <span id="weightDisplayBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">~130 kg</span>
+        </div>
+        <div class="mt-2">
+          <p class="text-xs font-bold text-white">Weekly Weight</p>
+          <p id="weightSubText" class="text-[10px] text-slate-400">Log 1x per week</p>
+        </div>
+        <div class="mt-2">
+          <button onclick="logWeeklyWeight()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 rounded border border-slate-700 font-semibold">
+            Update Weight
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Movement Break Generator with Visual Guideline & Safety Checklist -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
@@ -227,20 +266,19 @@
         </button>
       </div>
 
-      <!-- Main Visual Guideline Card -->
+      <!-- Visual Guideline Card -->
       <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
         <div class="flex items-start justify-between">
           <div class="flex items-center space-x-3">
-            <!-- Animated Graphic Container -->
             <div id="exerciseVisualIcon" class="w-14 h-14 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center p-2 text-2xl exercise-anim">
-              ⚡
+              💪
             </div>
             <div>
               <div class="flex items-center space-x-2">
                 <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Twister Chest Squeezes</p>
                 <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~8 kcal</span>
               </div>
-              <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5 leading-snug">Hold handles at chest height, slowly compress inward, hold 2s.</p>
+              <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5 leading-snug">Hold handles at chest height, compress bars inward, hold 2s.</p>
             </div>
           </div>
           <button onclick="completeCurrentExercise()" class="ml-2 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2.5 rounded-lg shadow">
@@ -248,11 +286,10 @@
           </button>
         </div>
 
-        <!-- 3-Point Joint Safety Form Checklist -->
+        <!-- 3-Point Joint Safety Checklist -->
         <div class="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 text-[11px] space-y-1">
           <p class="font-bold text-slate-300 uppercase tracking-wider text-[10px]">Proper Form & Safety Cues:</p>
           <ul id="exerciseSafetyCues" class="text-slate-400 space-y-0.5 list-disc list-inside">
-            <!-- Populated dynamically -->
           </ul>
         </div>
 
@@ -281,27 +318,28 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <h2 class="text-sm font-bold text-white">Smart Meal & Nutrition Logger</h2>
-        <span class="text-[10px] text-slate-500">Voice Dictation • Auto Range</span>
+        <span class="text-[10px] text-slate-500">Zero-Cal Auto • Overrides • Voice</span>
       </div>
 
       <div class="space-y-2">
         <div class="flex items-center space-x-1.5">
-          <input type="text" id="mealInput" oninput="liveEstimateMeal()" placeholder="e.g. 6 pcs japanese siomai, 1 cup rice, 2 eggs" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
+          <input type="text" id="mealInput" oninput="liveEstimateMeal()" placeholder="e.g. black coffee, 6 pcs siomai, bangus, 1 cup rice" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
           <button type="button" id="mealInputMicBtn" onclick="startDictation('mealInput', liveEstimateMeal)" title="Speak meal description" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2.5 rounded-lg border border-slate-700 text-sm">
             🎙️
           </button>
         </div>
 
+        <!-- Editable Override Numbers -->
         <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-xs">
           <div>
-            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Editable):</label>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Auto / Editable):</label>
             <div class="flex items-center">
               <input type="number" id="mealKcalInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 font-bold outline-none" />
               <span class="ml-1 text-[11px] text-slate-500">kcal</span>
             </div>
           </div>
           <div>
-            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Protein (Editable):</label>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Protein (Auto / Editable):</label>
             <div class="flex items-center">
               <input type="number" id="mealProteinInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-400 font-bold outline-none" />
               <span class="ml-1 text-[11px] text-slate-500">g</span>
@@ -342,7 +380,6 @@
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
     const BASE_SEDENTARY_TDEE = 2650;
 
-    // Movement Database with Visual Form Cues
     const exercisePool = [
       {
         category: "Equipment / Chest",
@@ -433,9 +470,11 @@
     let currentPoolIndex = 0;
     const todayKey = new Date().toISOString().slice(0, 10);
     const todayDocRef = db.collection("health_daily").doc(todayKey);
+    const metaDocRef = db.collection("health_meta").doc("user_stats");
 
     let appData = {
       water: 0,
+      sleepHours: 0,
       walkDone: false,
       walkDuration: '',
       walkKcal: 0,
@@ -446,6 +485,17 @@
       ]
     };
 
+    let userWeight = 130;
+
+    // Load weight metadata
+    metaDocRef.onSnapshot(doc => {
+      if (doc.exists && doc.data().weight) {
+        userWeight = doc.data().weight;
+        document.getElementById('weightDisplayBadge').textContent = `${userWeight} kg`;
+      }
+    });
+
+    // Daily snapshot
     todayDocRef.onSnapshot((doc) => {
       const indicator = document.getElementById('syncIndicator');
       indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-emerald-950 text-emerald-300 border border-emerald-800';
@@ -454,6 +504,7 @@
       if (doc.exists) {
         const remote = doc.data();
         appData.water = remote.water || 0;
+        appData.sleepHours = remote.sleepHours || 0;
         appData.walkDone = remote.walkDone || false;
         appData.walkDuration = remote.walkDuration || '';
         appData.walkKcal = remote.walkKcal || 0;
@@ -478,7 +529,7 @@
     }
 
     // ----------------------------------------------------
-    // 2. Painless Voice Dictation (🎙️ Web Speech API)
+    // 2. Voice Dictation (🎙️ Web Speech API)
     // ----------------------------------------------------
     function startDictation(targetInputId, callback) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -488,7 +539,7 @@
       }
 
       const recognition = new SpeechRecognition();
-      recognition.lang = 'en-PH'; // Optimized for English / Taglish
+      recognition.lang = 'en-PH';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
 
@@ -516,10 +567,10 @@
     }
 
     // ----------------------------------------------------
-    // 3. Smart Filipino Food & Quantity Parser
+    // 3. Smart Filipino Food & Zero-Calorie Beverage Engine
     // ----------------------------------------------------
     function parseQuantity(text, keyword) {
-      const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
+      const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc|cups|cup|slices|slice|mugs|mug)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
       const match = text.match(regex);
       if (match) return parseInt(match[1] || match[2], 10);
       return text.toLowerCase().includes(keyword) ? 1 : 0;
@@ -537,6 +588,25 @@
       let protein = 0;
       let matched = false;
 
+      // 1. Zero / Minimal Calorie Items
+      const isBlackCoffee = text.includes('black coffee') || text.includes('brewed coffee') || text.includes('drip coffee') || text.includes('americano') || (text.includes('coffee') && !text.includes('3 in 1') && !text.includes('3-in-1') && !text.includes('latte') && !text.includes('sugar') && !text.includes('milk'));
+      const isZeroBeverage = text.includes('water') || text.includes('coke zero') || text.includes('pepsi zero') || text.includes('diet coke') || text.includes('green tea') || text.includes('black tea');
+
+      if (isBlackCoffee || isZeroBeverage) {
+        kcal += (isBlackCoffee ? 2 : 0);
+        protein += 0;
+        matched = true;
+      }
+
+      // 2. Coffee with additions
+      if (text.includes('3 in 1') || text.includes('3-in-1') || text.includes('three in one')) {
+        const packets = parseQuantity(text, 'sachet') || parseQuantity(text, 'packet') || 1;
+        kcal += packets * 80;
+        protein += 1;
+        matched = true;
+      }
+
+      // 3. Dim Sum & Street Snacks
       const siomaiQty = parseQuantity(text, 'siomai') || parseQuantity(text, 'shumai');
       if (siomaiQty > 0) {
         kcal += siomaiQty * 46;
@@ -544,6 +614,7 @@
         matched = true;
       }
 
+      // 4. Carbs: Rice & Bread
       const riceQty = parseQuantity(text, 'rice') || parseQuantity(text, 'kanin');
       if (riceQty > 0) {
         kcal += riceQty * 205;
@@ -551,6 +622,14 @@
         matched = true;
       }
 
+      const pandesalQty = parseQuantity(text, 'pandesal') || parseQuantity(text, 'bread') || parseQuantity(text, 'tinapay');
+      if (pandesalQty > 0) {
+        kcal += pandesalQty * 50;
+        protein += pandesalQty * 1.5;
+        matched = true;
+      }
+
+      // 5. Eggs
       const eggQty = parseQuantity(text, 'egg') || parseQuantity(text, 'itlog');
       if (eggQty > 0) {
         kcal += eggQty * 75;
@@ -558,16 +637,54 @@
         matched = true;
       }
 
-      if (text.includes('corned beef')) { kcal += 220; protein += 14; matched = true; }
-      if (text.includes('chicken') || text.includes('manok')) { kcal += 260; protein += 26; matched = true; }
-      if (text.includes('pork') || text.includes('baboy') || text.includes('liempo')) { kcal += 320; protein += 22; matched = true; }
+      // 6. Fish & Seafood
+      if (text.includes('bangus') || text.includes('tilapia') || text.includes('fish') || text.includes('isda') || text.includes('tuna')) {
+        kcal += 180;
+        protein += 24;
+        matched = true;
+      }
+
+      // 7. Meats: Beef, Pork, Chicken, Breakfast
+      if (text.includes('beef') || text.includes('tapa') || text.includes('bistek') || text.includes('bulalo')) {
+        kcal += 280;
+        protein += 26;
+        matched = true;
+      }
+      if (text.includes('chicken') || text.includes('manok')) {
+        kcal += 260;
+        protein += 26;
+        matched = true;
+      }
+      if (text.includes('pork') || text.includes('baboy') || text.includes('liempo')) {
+        kcal += 320;
+        protein += 22;
+        matched = true;
+      }
+      if (text.includes('tocino')) {
+        kcal += 240;
+        protein += 15;
+        matched = true;
+      }
+      if (text.includes('corned beef')) {
+        kcal += 220;
+        protein += 14;
+        matched = true;
+      }
 
       const hotdogQty = parseQuantity(text, 'hotdog');
-      if (hotdogQty > 0) { kcal += hotdogQty * 140; protein += hotdogQty * 5; matched = true; }
+      if (hotdogQty > 0) {
+        kcal += hotdogQty * 140;
+        protein += hotdogQty * 5;
+        matched = true;
+      }
 
       if (text.includes('chili oil') || text.includes('chili garlic')) kcal += 90;
 
-      if (!matched) { kcal = 400; protein = 18; }
+      // Unmatched fallback: only apply if no recognizable items were identified
+      if (!matched) {
+        kcal = 350;
+        protein = 15;
+      }
 
       document.getElementById('mealKcalInput').value = Math.round(kcal);
       document.getElementById('mealProteinInput').value = Math.round(protein);
@@ -575,13 +692,15 @@
 
     function commitMeal() {
       const desc = document.getElementById('mealInput').value.trim();
-      const kcal = parseInt(document.getElementById('mealKcalInput').value, 10);
+      const kcalVal = document.getElementById('mealKcalInput').value;
       const protein = parseInt(document.getElementById('mealProteinInput').value, 10) || 0;
 
-      if (!desc || isNaN(kcal) || kcal <= 0) {
+      if (!desc || kcalVal === "" || isNaN(kcalVal) || parseInt(kcalVal, 10) < 0) {
         alert("Please enter a valid meal description and calorie value.");
         return;
       }
+
+      const kcal = parseInt(kcalVal, 10);
 
       if (!appData.meals) appData.meals = [];
       appData.meals.unshift({
@@ -603,7 +722,28 @@
     }
 
     // ----------------------------------------------------
-    // 4. Timed Reminders, Future Date & Phone Calendar Sync
+    // 4. Sleep & Weekly Weight Loggers
+    // ----------------------------------------------------
+    function logSleep(hours) {
+      appData.sleepHours = hours;
+      pushUpdate();
+    }
+
+    async function logWeeklyWeight() {
+      const input = prompt(`Enter your current weight in kg (Last: ${userWeight} kg):`, userWeight);
+      if (!input) return;
+      const parsed = parseFloat(input);
+      if (isNaN(parsed) || parsed < 50 || parsed > 250) {
+        alert("Please enter a realistic weight.");
+        return;
+      }
+      userWeight = parsed;
+      await metaDocRef.set({ weight: userWeight, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      document.getElementById('weightDisplayBadge').textContent = `${userWeight} kg`;
+    }
+
+    // ----------------------------------------------------
+    // 5. Timed Reminders, Alarms & Phone Sync
     // ----------------------------------------------------
     function toggleReminderForm() {
       const form = document.getElementById('addReminderForm');
@@ -651,7 +791,6 @@
       pushUpdate();
       toggleReminderForm();
 
-      // Reset form
       document.getElementById('reminderLabelInput').value = '';
       document.getElementById('reminderNoteInput').value = '';
       document.getElementById('reminderDateInput').value = '';
@@ -664,7 +803,6 @@
       renderReminders();
     }
 
-    // Export .ics calendar file so phone native alarm rings
     function addToPhoneCalendar(id) {
       const r = (appData.reminders || []).find(item => item.id === id);
       if (!r) return;
@@ -715,7 +853,7 @@
       const currentMinutes = String(now.getMinutes()).padStart(2, '0');
       const currentTimeStr = `${currentHours}:${currentMinutes}`;
       const currentDateStr = now.toISOString().slice(0, 10);
-      const day = now.getDay(); // 0 = Sun, 6 = Sat
+      const day = now.getDay();
 
       (appData.reminders || []).forEach(r => {
         if (r.type === 'weekday' && (day === 0 || day === 6)) return;
@@ -829,7 +967,7 @@
     }
 
     // ----------------------------------------------------
-    // 5. Movement Engine & Visual Guide
+    // 6. Movement Engine & Visual Guide
     // ----------------------------------------------------
     function cycleExercise() {
       currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
@@ -878,7 +1016,7 @@
     }
 
     // ----------------------------------------------------
-    // 6. Fasting & Rest Day Engine
+    // 7. Fasting & Rest Day Engine
     // ----------------------------------------------------
     function isRestDay(now) {
       const day = now.getDay();
@@ -1023,7 +1161,7 @@
     }
 
     // ----------------------------------------------------
-    // 7. Caloric Balance & Overall State Render
+    // 8. Caloric Balance & Overall State Render
     // ----------------------------------------------------
     function renderState() {
       let totalEaten = 0;
@@ -1062,6 +1200,7 @@
         netLabel.className = "text-[9px] text-rose-500 font-semibold";
       }
 
+      // Walk Status
       const walkBadge = document.getElementById('walkStatusBadge');
       const walkSub = document.getElementById('walkSubtitle');
       if (appData.walkDone) {
@@ -1074,8 +1213,19 @@
         walkSub.textContent = "Stroll with wife (6:00 AM)";
       }
 
+      // Sleep Badge
+      const sleepBadge = document.getElementById('sleepDisplayBadge');
+      if (appData.sleepHours > 0) {
+        sleepBadge.textContent = `✓ ${appData.sleepHours} hrs rest`;
+        sleepBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800";
+      } else {
+        sleepBadge.textContent = "Not Logged";
+        sleepBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+      }
+
       document.getElementById('waterCount').textContent = (appData.water || 0) + " ml";
 
+      // Exercise Output
       const totalSummary = Object.keys(totals).map(u => `${totals[u]} ${u}`).join(' • ');
       document.getElementById('cumulativeOutput').textContent = totalSummary
         ? `${totalSummary} • Total: +${exerciseBurn} kcal burned`
@@ -1099,6 +1249,7 @@
         `).join('');
       }
 
+      // Meal List
       const mealList = document.getElementById('mealList');
       if (!appData.meals || !appData.meals.length) {
         mealList.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No meals logged yet today.</p>';
@@ -1110,7 +1261,7 @@
               <p class="text-[10px] text-slate-400">${m.time} • <span class="text-emerald-400">${m.protein}</span></p>
             </div>
             <div class="flex items-center space-x-2">
-              <span class="font-mono text-amber-400 text-[11px]">~${m.kcal} kcal</span>
+              <span class="font-mono text-amber-400 text-[11px]">${m.kcal} kcal</span>
               <button onclick="deleteMeal(${idx})" class="text-slate-500 hover:text-rose-400 font-bold px-1">✕</button>
             </div>
           </div>
