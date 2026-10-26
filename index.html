@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Health Buddy Pro • Shift & Calorie Balance</title>
+  <title>Health Buddy Pro • Shift, Reminders & Nutrition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -15,16 +15,30 @@
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 antialiased min-h-screen pb-16">
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen pb-20">
   <div class="max-w-md mx-auto p-4 sm:p-6 space-y-5">
+
+    <!-- Active Timed Alert Banner -->
+    <div id="alarmPopup" class="hidden bg-rose-600 border border-rose-500 text-white p-4 rounded-xl shadow-2xl flex items-center justify-between animate-bounce">
+      <div>
+        <p class="font-extrabold text-sm" id="alarmTitle">⏰ REMINDER ALERT</p>
+        <p class="text-xs text-rose-100 mt-0.5" id="alarmSubtitle">School dismissal soon</p>
+      </div>
+      <button onclick="dismissAlarm()" class="bg-white text-rose-700 font-bold text-xs px-3 py-1.5 rounded-lg shadow">
+        Dismiss
+      </button>
+    </div>
 
     <!-- Header & Sync Status -->
     <header class="flex justify-between items-center border-b border-slate-800 pb-3">
       <div>
         <h1 class="text-xl font-bold tracking-tight text-white">Health Buddy</h1>
-        <p class="text-xs text-slate-400" id="headerSubtitle">Night-Shift Fasting & Calorie Tracker</p>
+        <p class="text-xs text-slate-400">Shift Fasting • Calorie Tracker • Reminders</p>
       </div>
       <div class="flex items-center space-x-2">
+        <button onclick="requestNotificationAccess()" id="notifBtn" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-2 py-1 rounded">
+          🔔 Alerts
+        </button>
         <span id="syncIndicator" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-amber-950 text-amber-300 border border-amber-800">
           Connecting...
         </span>
@@ -40,6 +54,21 @@
       <span id="bannerBadge" class="text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-300">Active</span>
     </div>
 
+    <!-- Daily Reminders & Alarms Section -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Scheduled Reminders</h2>
+          <p class="text-[10px] text-slate-500">Auto chimes & notifications</p>
+        </div>
+        <button onclick="addNewReminderPrompt()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">+ Add Alert</button>
+      </div>
+
+      <div id="remindersList" class="space-y-2">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
     <!-- Daily Caloric Balance Gauge -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
@@ -48,21 +77,18 @@
       </div>
 
       <div class="grid grid-cols-3 gap-2 text-center">
-        <!-- Eaten -->
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="text-[10px] text-slate-400 uppercase font-semibold">Eaten</p>
           <p id="totalEatenKcal" class="text-base font-extrabold text-amber-400 mt-0.5">0 kcal</p>
           <p class="text-[9px] text-slate-500">From Meals</p>
         </div>
 
-        <!-- Total Burned -->
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="text-[10px] text-slate-400 uppercase font-semibold">Burned</p>
           <p id="totalBurnedKcal" class="text-base font-extrabold text-emerald-400 mt-0.5">2,650</p>
           <p id="activeBurnSub" class="text-[9px] text-slate-500">+0 active</p>
         </div>
 
-        <!-- Net Deficit / Surplus -->
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="text-[10px] text-slate-400 uppercase font-semibold">Net Balance</p>
           <p id="netDeficitKcal" class="text-base font-extrabold text-emerald-400 mt-0.5">-2,650</p>
@@ -89,7 +115,6 @@
         </div>
       </div>
 
-      <!-- Metabolic Stage Description -->
       <div class="mt-4 w-full bg-slate-950/60 rounded-xl p-3 border border-slate-800 text-xs space-y-1">
         <div class="flex justify-between items-center">
           <span class="font-bold text-slate-300">Metabolic Mode:</span>
@@ -98,26 +123,6 @@
         <p id="stageDescription" class="text-slate-400 text-[11px] leading-relaxed">
           Calculating metabolic state...
         </p>
-      </div>
-
-      <!-- Craving Check Tool -->
-      <div class="mt-3 w-full">
-        <button onclick="toggleCravingTool()" class="w-full bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 text-amber-300 text-xs py-2 px-3 rounded-lg font-semibold flex justify-between items-center">
-          <span>⚡ Experiencing Hunger? (Craving Deflector)</span>
-          <span id="cravingToggleIcon">▼</span>
-        </button>
-
-        <div id="cravingBox" class="hidden mt-2 p-3 bg-slate-950 border border-amber-800/40 rounded-lg text-xs space-y-2">
-          <p class="text-slate-300 leading-relaxed text-[11px]">
-            Ghrelin hunger waves usually peak and recede within 15 minutes. Sip 300ml cold water or black coffee.
-          </p>
-          <div class="flex items-center justify-between pt-1">
-            <span id="cravingTimerDisplay" class="font-mono text-amber-400 font-bold text-sm">15:00</span>
-            <button onclick="startCravingTimer()" id="cravingBtn" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1 rounded text-xs">
-              Start 15m Reset
-            </button>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -157,12 +162,12 @@
       </div>
     </div>
 
-    <!-- Movement Generator (Including Arm Twister Exercises) -->
+    <!-- Movement Generator (With Twister Arm Exercises) -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
           <h2 class="text-sm font-bold text-white">Desk Break & Arm Twister</h2>
-          <span id="exerciseCategoryBadge" class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Zone: Upper Body</span>
+          <span id="exerciseCategoryBadge" class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Zone: Equipment / Chest</span>
         </div>
         <button onclick="cycleExercise()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
           🔄 Next
@@ -176,7 +181,7 @@
               <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Twister Chest Squeezes</p>
               <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~8 kcal</span>
             </div>
-            <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5">Hold handles at chest height, compress bars inward, hold 2s. Zero knee pressure.</p>
+            <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5">Hold handles at chest height, compress bars inward, hold 2s.</p>
           </div>
           <button onclick="completeCurrentExercise()" class="ml-3 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-lg">
             ✓ Done
@@ -191,13 +196,11 @@
         </div>
       </div>
 
-      <!-- Cumulative Output Summary -->
       <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 text-xs">
         <p class="font-semibold text-slate-300 mb-1">Today's Output & Active Burn:</p>
         <p id="cumulativeOutput" class="text-slate-400 text-[11px]">0 movement sets completed yet.</p>
       </div>
 
-      <!-- Itemized Movement Log Feed -->
       <div class="space-y-1.5 pt-1">
         <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed Timeline</p>
         <div id="exerciseFeed" class="divide-y divide-slate-800 max-h-32 overflow-y-auto text-xs">
@@ -206,13 +209,36 @@
       </div>
     </div>
 
-    <!-- Quick Meal & Protein Logger -->
+    <!-- 3-in-1 Hybrid Nutrition Engine -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
-      <h2 class="text-sm font-bold text-white">Quick Meal & Protein Logger</h2>
+      <div class="flex justify-between items-center">
+        <h2 class="text-sm font-bold text-white">Smart Meal & Nutrition Logger</h2>
+        <span class="text-[10px] text-slate-500">Auto-Detect • Override • Editable</span>
+      </div>
+
       <div class="space-y-2">
-        <input type="text" id="mealInput" placeholder="e.g. 2 fried eggs, 1 cup rice, 1 can corned beef" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
-        <button onclick="logMeal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2 rounded-lg transition">
-          Log Meal Estimate
+        <input type="text" id="mealInput" oninput="liveEstimateMeal()" placeholder="e.g. 6 pcs japanese siomai, 1 cup rice, 2 eggs" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-600 outline-none focus:border-amber-500" />
+        
+        <!-- Editable Override Numbers -->
+        <div class="grid grid-cols-2 gap-2 bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-xs">
+          <div>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Calories (Edit if needed):</label>
+            <div class="flex items-center">
+              <input type="number" id="mealKcalInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-amber-300 font-bold outline-none" />
+              <span class="ml-1 text-[11px] text-slate-500">kcal</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 font-semibold mb-0.5">Protein (Edit if needed):</label>
+            <div class="flex items-center">
+              <input type="number" id="mealProteinInput" placeholder="0" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-emerald-400 font-bold outline-none" />
+              <span class="ml-1 text-[11px] text-slate-500">g</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="commitMeal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs py-2 rounded-lg transition">
+          Record Meal
         </button>
       </div>
 
@@ -221,36 +247,11 @@
       </div>
     </div>
 
-    <!-- Night Cap (Work Days) / Weekend Wrap (Rest Days) -->
-    <div id="wrapCardContainer" class="bg-gradient-to-br from-slate-900 to-indigo-950/40 border border-indigo-900/50 rounded-xl p-4 space-y-3">
-      <div class="flex justify-between items-center">
-        <div>
-          <h2 id="wrapTitle" class="text-sm font-bold text-white">🌙 Shift Night Cap</h2>
-          <p id="wrapSubtitle" class="text-xs text-slate-400">Review before sleeping</p>
-        </div>
-        <button onclick="toggleDayWrap()" id="wrapBtn" class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg">
-          Wrap Up Day
-        </button>
-      </div>
-
-      <div id="shiftSummaryBox" class="text-xs bg-slate-950/80 p-3 rounded-lg border border-slate-800 space-y-1.5 hidden">
-        <p class="font-bold text-emerald-400">🎉 Today's Health Accomplishments:</p>
-        <ul class="text-[11px] text-slate-300 space-y-1 list-disc list-inside">
-          <li id="sumFasting">Fasting target maintained</li>
-          <li id="sumCalories">Net Calories: 0 kcal</li>
-          <li id="sumExercises">0 exercise sets logged</li>
-          <li id="sumWalk">Morning walk status</li>
-          <li id="sumWater">0 ml hydration logged</li>
-        </ul>
-        <p class="text-[10px] text-slate-400 italic pt-1">Great consistency. Get quality rest.</p>
-      </div>
-    </div>
-
   </div>
 
   <script>
     // ----------------------------------------------------
-    // 1. Firebase Initialization & Sync
+    // 1. Firebase Config & Initialization
     // ----------------------------------------------------
     const firebaseConfig = {
       apiKey: "AIzaSyBM2y_QgQ_g5emihqT26zG17ElAJrSKBFc",
@@ -267,21 +268,19 @@
     db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
-    const BASE_SEDENTARY_TDEE = 2650; // 130kg, 36M baseline desk burn
+    const BASE_SEDENTARY_TDEE = 2650;
 
-    // Full Rotation Pool including Twister Arm Equipment
+    // Exercise Database
     const exercisePool = [
-      { category: "Equipment / Chest", name: "12 Twister Chest Squeezes", desc: "Hold handles at chest height, slowly compress inward, hold 2s. Seated chest builder.", reps: 12, unit: "Twister Squeezes", kcal: 8 },
-      { category: "Equipment / Arms", name: "15 Twister Forearm & Arm Flexes", desc: "Hold twister low or vertically, squeeze to work biceps and forearms. Zero spinal pressure.", reps: 15, unit: "Twister Flexes", kcal: 6 },
+      { category: "Equipment / Chest", name: "12 Twister Chest Squeezes", desc: "Hold handles at chest height, compress bars inward, hold 2s.", reps: 12, unit: "Twister Squeezes", kcal: 8 },
+      { category: "Equipment / Arms", name: "15 Twister Forearm & Arm Flexes", desc: "Hold twister low, squeeze to work biceps and forearms.", reps: 15, unit: "Twister Flexes", kcal: 6 },
       { category: "Lower Body", name: "10 Chair Box Squats", desc: "Sit fully in office chair, pause 1s, stand tall without hands.", reps: 10, unit: "Squats", kcal: 6 },
-      { category: "Upper Body", name: "12 Desk Push-ups", desc: "Palms on desk edge at an angle. Presses chest without 130kg wrist strain on floor.", reps: 12, unit: "Push-ups", kcal: 4 },
-      { category: "Posture & Core", name: "20 Seated Knee Raises", desc: "Sit tall, pull alternating knees to chest. Strengthens hip flexors with zero spinal compression.", reps: 20, unit: "Knee Raises", kcal: 5 },
-      { category: "Slump Buster", name: "15 Standing Calf Raises", desc: "Hands on chair back, lift heels high. Pumps blood upward from desk sitting.", reps: 15, unit: "Calf Raises", kcal: 4 },
-      { category: "Upper Body", name: "15 Seated Torso Twists & Chest Openers", desc: "Reach arms wide, rotate slowly. Relieves hunched screen posture.", reps: 15, unit: "Twists", kcal: 4 }
+      { category: "Upper Body", name: "12 Desk Push-ups", desc: "Palms on desk edge at an angle. Zero wrist floor strain.", reps: 12, unit: "Push-ups", kcal: 4 },
+      { category: "Posture & Core", name: "20 Seated Knee Raises", desc: "Sit tall, pull alternating knees to chest. Zero spinal pressure.", reps: 20, unit: "Knee Raises", kcal: 5 },
+      { category: "Slump Buster", name: "15 Standing Calf Raises", desc: "Hands on chair back, lift heels high.", reps: 15, unit: "Calf Raises", kcal: 4 }
     ];
 
     let currentPoolIndex = 0;
-
     const todayKey = new Date().toISOString().slice(0, 10);
     const todayDocRef = db.collection("health_daily").doc(todayKey);
 
@@ -292,7 +291,9 @@
       walkKcal: 0,
       exerciseLogs: [],
       meals: [],
-      shiftWrapped: false
+      reminders: [
+        { id: 1, label: "Pick up daughter at school", time: "15:30", note: "School dismissal at 4:00 PM (30m reminder)", weekdaysOnly: true, alertedToday: false }
+      ]
     };
 
     todayDocRef.onSnapshot((doc) => {
@@ -301,7 +302,16 @@
       indicator.textContent = '● Live Synced';
 
       if (doc.exists) {
-        appData = Object.assign(appData, doc.data());
+        const remote = doc.data();
+        appData.water = remote.water || 0;
+        appData.walkDone = remote.walkDone || false;
+        appData.walkDuration = remote.walkDuration || '';
+        appData.walkKcal = remote.walkKcal || 0;
+        appData.exerciseLogs = remote.exerciseLogs || [];
+        appData.meals = remote.meals || [];
+        if (remote.reminders && remote.reminders.length) {
+          appData.reminders = remote.reminders;
+        }
       } else {
         todayDocRef.set(appData);
       }
@@ -318,32 +328,285 @@
     }
 
     // ----------------------------------------------------
-    // 2. Schedule Detection: Work Days vs. Weekend Rest Days
+    // 2. Smart Filipino Food & Quantity Parser Engine
+    // ----------------------------------------------------
+    function parseQuantity(text, keyword) {
+      // Look for numbers preceding or succeeding the keyword (e.g. "6 pcs siomai", "6 siomai", "siomai 6")
+      const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
+      const match = text.match(regex);
+      if (match) {
+        return parseInt(match[1] || match[2], 10);
+      }
+      return text.toLowerCase().includes(keyword) ? 1 : 0;
+    }
+
+    function liveEstimateMeal() {
+      const text = document.getElementById('mealInput').value.toLowerCase().trim();
+      if (!text) {
+        document.getElementById('mealKcalInput').value = '';
+        document.getElementById('mealProteinInput').value = '';
+        return;
+      }
+
+      let kcal = 0;
+      let protein = 0;
+      let matched = false;
+
+      // Siomai: 46 kcal & 2.3g protein per piece
+      const siomaiQty = parseQuantity(text, 'siomai') || parseQuantity(text, 'shumai');
+      if (siomaiQty > 0) {
+        kcal += siomaiQty * 46; // e.g. 6 pcs = 276 kcal
+        protein += siomaiQty * 2.3;
+        matched = true;
+      }
+
+      // Rice: 205 kcal & 4g protein per cup
+      const riceQty = parseQuantity(text, 'rice') || parseQuantity(text, 'kanin');
+      if (riceQty > 0) {
+        kcal += riceQty * 205;
+        protein += riceQty * 4.2;
+        matched = true;
+      }
+
+      // Egg: 75 kcal & 6g protein each
+      const eggQty = parseQuantity(text, 'egg') || parseQuantity(text, 'itlog');
+      if (eggQty > 0) {
+        kcal += eggQty * 75;
+        protein += eggQty * 6.3;
+        matched = true;
+      }
+
+      // Corned Beef: ~220 kcal & 14g protein per serving
+      if (text.includes('corned beef')) {
+        kcal += 220;
+        protein += 14;
+        matched = true;
+      }
+
+      // Chicken Breast / Thigh
+      if (text.includes('chicken') || text.includes('manok')) {
+        kcal += 260;
+        protein += 26;
+        matched = true;
+      }
+
+      // Pork Chop / Adobo / Belly
+      if (text.includes('pork') || text.includes('baboy') || text.includes('liempo')) {
+        kcal += 320;
+        protein += 22;
+        matched = true;
+      }
+
+      // Hotdog: ~140 kcal each
+      const hotdogQty = parseQuantity(text, 'hotdog');
+      if (hotdogQty > 0) {
+        kcal += hotdogQty * 140;
+        protein += hotdogQty * 5;
+        matched = true;
+      }
+
+      // Chili oil addon: ~100 kcal
+      if (text.includes('chili oil') || text.includes('chili garlic')) {
+        kcal += 90;
+      }
+
+      // Fallback if dish not in quick dictionary
+      if (!matched) {
+        kcal = 400;
+        protein = 18;
+      }
+
+      document.getElementById('mealKcalInput').value = Math.round(kcal);
+      document.getElementById('mealProteinInput').value = Math.round(protein);
+    }
+
+    function commitMeal() {
+      const desc = document.getElementById('mealInput').value.trim();
+      const kcal = parseInt(document.getElementById('mealKcalInput').value, 10);
+      const protein = parseInt(document.getElementById('mealProteinInput').value, 10) || 0;
+
+      if (!desc || isNaN(kcal) || kcal <= 0) {
+        alert("Please enter a valid meal description and calorie value.");
+        return;
+      }
+
+      if (!appData.meals) appData.meals = [];
+      appData.meals.unshift({
+        desc,
+        kcal,
+        protein: `~${protein}g Protein`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      document.getElementById('mealInput').value = '';
+      document.getElementById('mealKcalInput').value = '';
+      document.getElementById('mealProteinInput').value = '';
+      pushUpdate();
+    }
+
+    function deleteMeal(idx) {
+      appData.meals.splice(idx, 1);
+      pushUpdate();
+    }
+
+    // ----------------------------------------------------
+    // 3. Timed Reminders & Audio Alarms Engine
+    // ----------------------------------------------------
+    function checkReminders() {
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTimeStr = `${currentHours}:${currentMinutes}`;
+      const day = now.getDay(); // 0 = Sun, 6 = Sat
+
+      (appData.reminders || []).forEach(r => {
+        if (!r.active && r.active !== undefined) return;
+        if (r.weekdaysOnly && (day === 0 || day === 6)) return; // Skip on weekends
+
+        if (r.time === currentTimeStr && !r.alertedToday) {
+          triggerAlarm(r);
+          r.alertedToday = true;
+          pushUpdate();
+        }
+
+        // Reset alarm trigger at midnight
+        if (currentTimeStr === "00:01") {
+          r.alertedToday = false;
+        }
+      });
+    }
+
+    function triggerAlarm(reminder) {
+      playLoudChime();
+      const popup = document.getElementById('alarmPopup');
+      document.getElementById('alarmTitle').textContent = `⏰ ${reminder.label}`;
+      document.getElementById('alarmSubtitle').textContent = reminder.note || `Time: ${reminder.time}`;
+      popup.classList.remove('hidden');
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification(reminder.label, {
+          body: reminder.note || `Scheduled alert at ${reminder.time}`,
+          icon: "https://cdn-icons-png.flaticon.com/512/883/883256.png"
+        });
+      }
+    }
+
+    function dismissAlarm() {
+      document.getElementById('alarmPopup').classList.add('hidden');
+    }
+
+    function addNewReminderPrompt() {
+      const label = prompt("Reminder name (e.g. Pick up daughter):");
+      if (!label) return;
+      const time = prompt("Alarm time in 24-hr format (e.g. 15:30 for 3:30 PM):", "15:30");
+      if (!time || !time.includes(":")) return;
+      const note = prompt("Notes (e.g. Dismissal 4:00 PM):", "");
+      const weekdays = confirm("Weekdays only (Monday to Friday)? Click OK for Weekdays, Cancel for Everyday.");
+
+      if (!appData.reminders) appData.reminders = [];
+      appData.reminders.push({
+        id: Date.now(),
+        label,
+        time,
+        note,
+        weekdaysOnly: weekdays,
+        alertedToday: false
+      });
+
+      pushUpdate();
+      renderReminders();
+    }
+
+    function deleteReminder(id) {
+      if (!confirm("Delete this reminder?")) return;
+      appData.reminders = appData.reminders.filter(r => r.id !== id);
+      pushUpdate();
+      renderReminders();
+    }
+
+    function renderReminders() {
+      const container = document.getElementById('remindersList');
+      if (!appData.reminders || !appData.reminders.length) {
+        container.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No active reminders.</p>';
+        return;
+      }
+
+      container.innerHTML = appData.reminders.map(r => `
+        <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-mono text-amber-400 font-bold">${format12Hour(r.time)}</span>
+              <span class="font-semibold text-slate-200">${r.label}</span>
+              ${r.weekdaysOnly ? '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Mon–Fri</span>' : ''}
+            </div>
+            ${r.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${r.note}</p>` : ''}
+          </div>
+          <button onclick="deleteReminder(${r.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function format12Hour(timeStr) {
+      const [h, m] = timeStr.split(':');
+      let hours = parseInt(h, 10);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${hours}:${m} ${ampm}`;
+    }
+
+    function playLoudChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        for (let i = 0; i < 3; i++) {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + (i * 0.25)); // E5
+          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + (i * 0.25) + 0.2); // A5
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (i * 0.25));
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.25) + 0.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + (i * 0.25));
+          osc.stop(audioCtx.currentTime + (i * 0.25) + 0.2);
+        }
+      } catch(e) {}
+    }
+
+    function requestNotificationAccess() {
+      if (!("Notification" in window)) {
+        alert("Notifications are not supported on this browser.");
+        return;
+      }
+      Notification.requestPermission().then(permission => {
+        const btn = document.getElementById('notifBtn');
+        if (permission === "granted") {
+          btn.textContent = "🔔 Active";
+          btn.className = "text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-1 rounded";
+          new Notification("Health Buddy Ready", { body: "Your alarms and pickup reminders are active!" });
+        }
+      });
+    }
+
+    // ----------------------------------------------------
+    // 4. Movement, Fasting & Rest Day Handling
     // ----------------------------------------------------
     function isRestDay(now) {
       const day = now.getDay();
       const hours = now.getHours();
-
-      // Saturday 6:00 AM onwards
       if (day === 6 && hours >= 6) return true;
-      // All day Sunday
       if (day === 0) return true;
-      // Monday before 8:00 PM kickoff
       if (day === 1 && hours < 20) return true;
-
       return false;
     }
 
-    // ----------------------------------------------------
-    // 3. Fasting Engine & Schedule Banner
-    // ----------------------------------------------------
     function updateFastingCycle() {
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
       const seconds = now.getSeconds();
       const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-      const FAST_END_SECONDS = 15 * 3600; // 3:00 PM
+      const FAST_END_SECONDS = 15 * 3600;
 
       const circle = document.getElementById('progressCircle');
       const timerCountdown = document.getElementById('timerCountdown');
@@ -357,8 +620,6 @@
       const bannerTitle = document.getElementById('bannerTitle');
       const bannerSub = document.getElementById('bannerSubtitle');
       const bannerBadge = document.getElementById('bannerBadge');
-      const wrapTitle = document.getElementById('wrapTitle');
-      const wrapSub = document.getElementById('wrapSubtitle');
 
       const resting = isRestDay(now);
 
@@ -368,13 +629,7 @@
         bannerSub.textContent = "Work shift off. Focus on family time, 6:00 AM walks, and fasting maintenance.";
         bannerBadge.textContent = "Rest Days";
         bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-900 text-emerald-200 border border-emerald-700";
-
-        wrapTitle.textContent = "🌴 Rest Day Summary";
-        wrapSub.textContent = "Review today's health wins";
       } else {
-        wrapTitle.textContent = "🌙 Shift Night Cap";
-        wrapSub.textContent = "Review before sleeping at 7:00 AM";
-
         if (hours >= 20 && hours < 24) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-indigo-950/60 border-indigo-700/60";
           bannerTitle.textContent = "🇨🇦 8:00 PM: Canadian Shift Kickoff";
@@ -411,7 +666,7 @@
         const elapsedSeconds = currentTotalSeconds;
         const elapsedHours = (elapsedSeconds / 3600).toFixed(1);
 
-        timerCountdown.textContent = formatTime(remainingSeconds);
+        timerCountdown.textContent = formatSeconds(remainingSeconds);
         subTimerLabel.textContent = "remaining until 3:00 PM eating window";
         stageHours.textContent = `${elapsedHours} hrs completed`;
 
@@ -422,19 +677,19 @@
         if (elapsedSeconds < 4 * 3600) {
           stageBadge.textContent = "Digestion & Glucose Drop";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
-          stageDesc.textContent = "Body processing late food. Blood sugar and insulin returning to resting baseline.";
+          stageDesc.textContent = "Body processing late food. Blood sugar returning to baseline.";
         } else if (elapsedSeconds < 8 * 3600) {
           stageBadge.textContent = "Glycogen Depletion";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
-          stageDesc.textContent = "Liver carbohydrate stores emptying. Body mobilizes fatty acids for fuel.";
+          stageDesc.textContent = "Liver carbohydrate stores emptying. Body transitions toward fat burning.";
         } else if (elapsedSeconds < 12 * 3600) {
           stageBadge.textContent = "Active Fat Oxidation";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
-          stageDesc.textContent = "Insulin fully suppressed. Fat stores directly broken down for resting energy.";
+          stageDesc.textContent = "Insulin fully suppressed. Fat stores actively broken down for energy.";
         } else {
           stageBadge.textContent = "Peak Fat Burn & Autophagy";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-          stageDesc.textContent = "Maximum fat breakdown window before breaking fast. Early cellular repair active.";
+          stageDesc.textContent = "Maximum fat breakdown window before breaking fast.";
         }
       } else {
         stateLabel.textContent = "EATING WINDOW";
@@ -445,7 +700,7 @@
         const totalEatingWindow = (24 * 3600) - FAST_END_SECONDS;
         const remainingToMidnight = (24 * 3600) - currentTotalSeconds;
 
-        timerCountdown.textContent = formatTime(remainingToMidnight);
+        timerCountdown.textContent = formatSeconds(remainingToMidnight);
         subTimerLabel.textContent = "until midnight fasting cutoff";
 
         const pct = secondsInEatingWindow / totalEatingWindow;
@@ -459,7 +714,7 @@
       }
     }
 
-    function formatTime(totalSec) {
+    function formatSeconds(totalSec) {
       const h = Math.floor(totalSec / 3600);
       const m = Math.floor((totalSec % 3600) / 60);
       const s = totalSec % 60;
@@ -467,49 +722,17 @@
     }
 
     // ----------------------------------------------------
-    // 4. Craving Reset Tool
-    // ----------------------------------------------------
-    let cravingInterval = null;
-    let cravingSecondsLeft = 900;
-
-    function toggleCravingTool() {
-      const box = document.getElementById('cravingBox');
-      const icon = document.getElementById('cravingToggleIcon');
-      box.classList.toggle('hidden');
-      icon.textContent = box.classList.contains('hidden') ? '▼' : '▲';
-    }
-
-    function startCravingTimer() {
-      const btn = document.getElementById('cravingBtn');
-      const display = document.getElementById('cravingTimerDisplay');
-      if (cravingInterval) clearInterval(cravingInterval);
-
-      cravingSecondsLeft = 900;
-      btn.disabled = true;
-      btn.textContent = "Delay Active";
-
-      cravingInterval = setInterval(() => {
-        cravingSecondsLeft--;
-        const m = Math.floor(cravingSecondsLeft / 60);
-        const s = cravingSecondsLeft % 60;
-        display.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-
-        if (cravingSecondsLeft <= 0) {
-          clearInterval(cravingInterval);
-          btn.disabled = false;
-          btn.textContent = "Start 15m Reset";
-          display.textContent = "Wave Passed!";
-        }
-      }, 1000);
-    }
-
-    // ----------------------------------------------------
-    // 5. Actions: Walk, Exercise, Meals
+    // 5. Habits & Exercise
     // ----------------------------------------------------
     function logWalk(duration, kcal) {
       appData.walkDone = true;
       appData.walkDuration = duration;
       appData.walkKcal = kcal;
+      pushUpdate();
+    }
+
+    function addWater(amount) {
+      appData.water = (appData.water || 0) + amount;
       pushUpdate();
     }
 
@@ -546,7 +769,6 @@
 
     function flagJointIssue() {
       alert("Prioritizing seated twister exercises and seated knee raises to keep your knees completely safe.");
-      // Skip squats and set to Twister Chest Squeeze
       currentPoolIndex = 0;
       updateExerciseCard();
     }
@@ -556,71 +778,11 @@
       pushUpdate();
     }
 
-    function addWater(amount) {
-      appData.water = (appData.water || 0) + amount;
-      pushUpdate();
-    }
-
-    function logMeal() {
-      const input = document.getElementById('mealInput');
-      const desc = input.value.trim();
-      if (!desc) return;
-
-      let estimatedMin = 350;
-      let estimatedMax = 500;
-      let protein = 20;
-
-      const lower = desc.toLowerCase();
-      if (lower.includes('rice')) { estimatedMin += 180; estimatedMax += 220; }
-      if (lower.includes('egg')) { estimatedMin += 70; estimatedMax += 90; protein += 6; }
-      if (lower.includes('chicken') || lower.includes('pork') || lower.includes('beef')) {
-        estimatedMin += 250; estimatedMax += 350; protein += 25;
-      }
-      if (lower.includes('burger') || lower.includes('pizza') || lower.includes('fried') || lower.includes('shopee')) {
-        estimatedMin += 200; estimatedMax += 300;
-      }
-
-      const midKcal = Math.round((estimatedMin + estimatedMax) / 2);
-
-      if (!appData.meals) appData.meals = [];
-      appData.meals.unshift({
-        desc,
-        kcal: midKcal,
-        range: `${estimatedMin}–${estimatedMax} kcal`,
-        protein: `~${protein}g Protein`,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
-      input.value = '';
-      pushUpdate();
-    }
-
-    function deleteMeal(idx) {
-      appData.meals.splice(idx, 1);
-      pushUpdate();
-    }
-
-    function toggleDayWrap() {
-      const box = document.getElementById('shiftSummaryBox');
-      const btn = document.getElementById('wrapBtn');
-      appData.shiftWrapped = !appData.shiftWrapped;
-
-      if (appData.shiftWrapped) {
-        box.classList.remove('hidden');
-        btn.textContent = "Reopen Day";
-        btn.className = "text-xs bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg border border-slate-700";
-      } else {
-        box.classList.add('hidden');
-        btn.textContent = "Wrap Up Day";
-        btn.className = "text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg";
-      }
-      pushUpdate();
-    }
-
     // ----------------------------------------------------
-    // 6. Caloric Balance & UI Render
+    // 6. Overall State Render
     // ----------------------------------------------------
     function renderState() {
+      // Calorie Math
       let totalEaten = 0;
       (appData.meals || []).forEach(m => {
         totalEaten += (m.kcal || 0);
@@ -657,6 +819,7 @@
         netLabel.className = "text-[9px] text-rose-500 font-semibold";
       }
 
+      // Walk Status
       const walkBadge = document.getElementById('walkStatusBadge');
       const walkSub = document.getElementById('walkSubtitle');
       if (appData.walkDone) {
@@ -671,6 +834,7 @@
 
       document.getElementById('waterCount').textContent = (appData.water || 0) + " ml";
 
+      // Exercise Output
       const totalSummary = Object.keys(totals).map(u => `${totals[u]} ${u}`).join(' • ');
       document.getElementById('cumulativeOutput').textContent = totalSummary
         ? `${totalSummary} • Total: +${exerciseBurn} kcal burned`
@@ -694,6 +858,7 @@
         `).join('');
       }
 
+      // Meal List
       const mealList = document.getElementById('mealList');
       if (!appData.meals || !appData.meals.length) {
         mealList.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No meals logged yet today.</p>';
@@ -712,25 +877,12 @@
         `).join('');
       }
 
-      const box = document.getElementById('shiftSummaryBox');
-      const btn = document.getElementById('wrapBtn');
-      if (appData.shiftWrapped) {
-        box.classList.remove('hidden');
-        btn.textContent = "Reopen Day";
-        btn.className = "text-xs bg-slate-800 text-slate-300 font-bold px-3 py-1.5 rounded-lg border border-slate-700";
-        document.getElementById('sumCalories').textContent = `Net Balance: ${netBalance.toLocaleString()} kcal (${netBalance <= 0 ? 'Deficit' : 'Surplus'})`;
-        document.getElementById('sumExercises').textContent = `${logs.length} movement sets completed (+${exerciseBurn} kcal)`;
-        document.getElementById('sumWalk').textContent = appData.walkDone ? `Morning walk finished (+${walkBurn} kcal)` : 'Morning walk pending';
-        document.getElementById('sumWater').textContent = `${appData.water || 0} ml water consumed`;
-      } else {
-        box.classList.add('hidden');
-        btn.textContent = "Wrap Up Day";
-        btn.className = "text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg";
-      }
+      renderReminders();
     }
 
     updateExerciseCard();
     setInterval(updateFastingCycle, 1000);
+    setInterval(checkReminders, 15000); // Check alarms every 15s
     updateFastingCycle();
   </script>
 </body>
