@@ -62,71 +62,68 @@
       <span id="bannerBadge" class="text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-300">Active</span>
     </div>
 
-    <!-- Scheduled Reminders & Calendar Alarms -->
+    <!-- Hydration Warning Alert Banner (Smart Trigger) -->
+    <div id="hydrationNudgeBanner" class="hidden bg-amber-950/70 border border-amber-700/60 p-3 rounded-xl text-xs flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-lg">💧</span>
+        <div>
+          <p class="font-bold text-amber-300">Hydration Checkpoint</p>
+          <p class="text-[10px] text-amber-200/80">Mid-shift dip detected. Drink a glass of water to clear fatigue.</p>
+        </div>
+      </div>
+      <button onclick="addWater(250)" class="bg-amber-600 hover:bg-amber-500 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg shadow">
+        +250ml
+      </button>
+    </div>
+
+    <!-- Weight Hub: Line Graph, Progress Milestones & Next Weigh-In -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Scheduled Reminders & Alarms</h2>
-          <p class="text-[10px] text-slate-500">Daily, Weekdays & Future Date alerts</p>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Weight & Trend Tracker</h2>
+          <p id="nextWeighInText" class="text-[10px] text-slate-500">Next weigh-in: Sunday</p>
         </div>
-        <button onclick="toggleReminderForm()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">+ Add Alert</button>
+        <button onclick="logWeeklyWeight()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold px-2.5 py-1 rounded-lg border border-slate-700">
+          ⚖️ Log Weight
+        </button>
       </div>
 
-      <!-- Expandable Add Reminder Form with Voice Mic -->
-      <div id="addReminderForm" class="hidden bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-3 text-xs">
-        <div>
-          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Reminder Title</label>
-          <div class="flex items-center space-x-1.5">
-            <input type="text" id="reminderLabelInput" placeholder="e.g. Pick up daughter at school" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none focus:border-amber-500" />
-            <button type="button" id="reminderLabelMicBtn" onclick="startDictation('reminderLabelInput')" title="Speak reminder title" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700">
-              🎙️
-            </button>
-          </div>
+      <!-- Current Weight & Milestone Cards -->
+      <div class="grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+          <p class="text-[9px] uppercase font-semibold text-slate-400">Current</p>
+          <p id="currentWeightVal" class="text-base font-extrabold text-amber-400 mt-0.5">123.4 kg</p>
+          <p id="bmrLabel" class="text-[9px] text-slate-500">BMR: ~2,150k</p>
         </div>
-
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Frequency</label>
-            <select id="reminderTypeSelect" onchange="toggleDateSelector()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
-              <option value="weekday">Mon–Fri (Weekdays)</option>
-              <option value="daily">Everyday</option>
-              <option value="future">Specific Future Date</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Alarm Time</label>
-            <input type="time" id="reminderTimeInput" value="15:30" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
-          </div>
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+          <p class="text-[9px] uppercase font-semibold text-slate-400">Next Target</p>
+          <p id="nextMilestoneVal" class="text-base font-extrabold text-indigo-400 mt-0.5">120.0 kg</p>
+          <p id="milestoneGapVal" class="text-[9px] text-indigo-300">3.4 kg to go</p>
         </div>
-
-        <div id="futureDateContainer" class="hidden">
-          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Calendar Date</label>
-          <input type="date" id="reminderDateInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
-        </div>
-
-        <div>
-          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Notes / Subtitle</label>
-          <input type="text" id="reminderNoteInput" placeholder="e.g. Dismissal 4:00 PM (30 min early)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
-        </div>
-
-        <div class="flex gap-2 pt-1">
-          <button onclick="saveNewReminder()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition">
-            Save Reminder
-          </button>
-          <button onclick="toggleReminderForm()" class="bg-slate-800 text-slate-400 px-3 py-2 rounded-lg hover:text-white">
-            Cancel
-          </button>
+        <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+          <p class="text-[9px] uppercase font-semibold text-slate-400">Total Lost</p>
+          <p id="totalWeightLostVal" class="text-base font-extrabold text-emerald-400 mt-0.5">0.0 kg</p>
+          <p class="text-[9px] text-slate-500">Since Day 1</p>
         </div>
       </div>
 
-      <div id="remindersList" class="space-y-2"></div>
+      <!-- Visual Line Graph (SVG) -->
+      <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
+        <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
+          <span>Weekly Weight Trend</span>
+          <span id="graphRangeText">Past Entries</span>
+        </div>
+        <div class="w-full h-28 flex items-center justify-center">
+          <svg id="weightSvgChart" class="w-full h-full overflow-visible" viewBox="0 0 320 100"></svg>
+        </div>
+      </div>
     </div>
 
     <!-- Daily Caloric Balance Gauge -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Daily Calorie Balance</h2>
-        <span class="text-[10px] text-slate-500">130kg Base: 2,650 kcal</span>
+        <span id="baseTdeeDisplay" class="text-[10px] text-slate-500">Base Burn: 2,580 kcal</span>
       </div>
 
       <div class="grid grid-cols-3 gap-2 text-center">
@@ -138,13 +135,13 @@
 
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="text-[10px] text-slate-400 uppercase font-semibold">Burned</p>
-          <p id="totalBurnedKcal" class="text-base font-extrabold text-emerald-400 mt-0.5">2,650</p>
+          <p id="totalBurnedKcal" class="text-base font-extrabold text-emerald-400 mt-0.5">2,580</p>
           <p id="activeBurnSub" class="text-[9px] text-slate-500">+0 active</p>
         </div>
 
         <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800">
           <p class="text-[10px] text-slate-400 uppercase font-semibold">Net Balance</p>
-          <p id="netDeficitKcal" class="text-base font-extrabold text-emerald-400 mt-0.5">-2,650</p>
+          <p id="netDeficitKcal" class="text-base font-extrabold text-emerald-400 mt-0.5">-2,580</p>
           <p id="netDeficitLabel" class="text-[9px] text-emerald-500 font-semibold">Deficit</p>
         </div>
       </div>
@@ -181,7 +178,6 @@
 
     <!-- DYNAMIC 1-TAP TRACKERS: LIVE MORNING WALK & LIVE SLEEP TRACKER -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      
       <!-- 1. Real-Time 6:00 AM Walk Tracker (Naic, Cavite Heat Adjusted) -->
       <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3">
         <div class="flex justify-between items-start">
@@ -189,7 +185,7 @@
             <span class="text-2xl">🌅</span>
             <div>
               <p class="text-xs font-bold text-white">6:00 AM Walk</p>
-              <p class="text-[10px] text-slate-400">Naic, Cavite Stroll (~7.4 kcal/min)</p>
+              <p id="walkRateSubtitle" class="text-[10px] text-slate-400">Naic Stroll (~7.0 kcal/min)</p>
             </div>
           </div>
           <span id="walkStatusBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">
@@ -197,17 +193,15 @@
           </span>
         </div>
 
-        <!-- Live Walk Active Display -->
         <div id="walkActiveBox" class="hidden bg-slate-950 p-2.5 rounded-lg border border-emerald-800/60 text-center">
           <p id="liveWalkTimer" class="font-mono text-xl font-black text-emerald-400">00:00</p>
-          <p id="liveWalkBurn" class="text-[10px] text-emerald-300 mt-0.5">+0 kcal burned (Live 130kg)</p>
+          <p id="liveWalkBurn" class="text-[10px] text-emerald-300 mt-0.5">+0 kcal burned (Dynamic)</p>
         </div>
 
         <div id="walkCompletedBox" class="hidden bg-slate-950 p-2 rounded-lg border border-slate-800 text-center text-xs">
           <p id="walkSummaryText" class="font-semibold text-emerald-400">Walk Logged</p>
         </div>
 
-        <!-- Walk Action Buttons -->
         <div>
           <button id="walkStartBtn" onclick="toggleWalkSession()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg transition shadow">
             🚶 Start Morning Walk
@@ -215,7 +209,7 @@
         </div>
       </div>
 
-      <!-- 2. Real-Time Sleep Tracker (Bedtime Press & Wake Press) -->
+      <!-- 2. Real-Time Sleep Tracker -->
       <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3">
         <div class="flex justify-between items-start">
           <div class="flex items-center space-x-2">
@@ -230,7 +224,6 @@
           </span>
         </div>
 
-        <!-- Live Sleeping Active Display -->
         <div id="sleepActiveBox" class="hidden bg-slate-950 p-2.5 rounded-lg border border-indigo-800/60 text-center">
           <p id="liveSleepTimer" class="font-mono text-xl font-black text-indigo-400">00h 00m</p>
           <p id="sleepStartedAt" class="text-[10px] text-indigo-300 mt-0.5">Asleep...</p>
@@ -240,54 +233,84 @@
           <p id="sleepSummaryText" class="font-semibold text-indigo-300">Sleep Logged</p>
         </div>
 
-        <!-- Sleep Action Buttons & Midnight Bathroom Break -->
         <div class="space-y-1.5">
           <button id="sleepStartBtn" onclick="toggleSleepSession()" class="w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs py-2 rounded-lg transition shadow">
             🛏️ Going to Sleep
           </button>
-          
           <button id="peeBreakBtn" onclick="togglePeeBreak()" class="hidden w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1.5 rounded-lg border border-slate-700">
             🚽 Pause for Bathroom Break
           </button>
         </div>
       </div>
-
     </div>
 
-    <!-- Hydration & Weekly Weight -->
-    <div class="grid grid-cols-2 gap-3">
-      <!-- Water Intake -->
-      <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
-        <div class="flex justify-between items-start">
-          <span class="text-2xl">💧</span>
-          <span id="waterCount" class="text-xs font-bold text-cyan-400">0 ml</span>
+    <!-- Hydration & Scheduled Reminders -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Hydration Log</h2>
+          <span id="waterCount" class="text-sm font-extrabold text-cyan-400">0 ml / 3,000 ml</span>
         </div>
-        <div class="mt-2">
-          <p class="text-xs font-bold text-white">Hydration</p>
-          <p class="text-[10px] text-slate-400">Target: 2,500–3,000ml</p>
+        <div class="flex space-x-1.5">
+          <button onclick="addWater(250)" class="bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-xs font-bold px-2.5 py-1.5 rounded-lg">+250ml</button>
+          <button onclick="addWater(500)" class="bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-xs font-bold px-2.5 py-1.5 rounded-lg">+500ml</button>
         </div>
-        <div class="mt-2 flex gap-1">
-          <button onclick="addWater(250)" class="w-full bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-[10px] font-bold py-1 rounded">+250ml</button>
-          <button onclick="addWater(500)" class="w-full bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 text-[10px] font-bold py-1 rounded">+500ml</button>
+      </div>
+    </div>
+
+    <!-- Scheduled Reminders & Calendar Alarms -->
+    <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Scheduled Reminders & Alarms</h2>
+          <p class="text-[10px] text-slate-500">Daily, Weekdays & Future Date alerts</p>
+        </div>
+        <button onclick="toggleReminderForm()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">+ Add Alert</button>
+      </div>
+
+      <div id="addReminderForm" class="hidden bg-slate-950 p-3.5 rounded-lg border border-slate-800 space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Reminder Title</label>
+          <div class="flex items-center space-x-1.5">
+            <input type="text" id="reminderLabelInput" placeholder="e.g. Pick up daughter at school" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none focus:border-amber-500" />
+            <button type="button" id="reminderLabelMicBtn" onclick="startDictation('reminderLabelInput')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-2 rounded-lg border border-slate-700">
+              🎙️
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Frequency</label>
+            <select id="reminderTypeSelect" onchange="toggleDateSelector()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none">
+              <option value="weekday">Mon–Fri (Weekdays)</option>
+              <option value="daily">Everyday</option>
+              <option value="future">Specific Future Date</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Alarm Time</label>
+            <input type="time" id="reminderTimeInput" value="15:30" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
+          </div>
+        </div>
+
+        <div id="futureDateContainer" class="hidden">
+          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Calendar Date</label>
+          <input type="date" id="reminderDateInput" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-slate-400 text-[10px] uppercase font-bold mb-1">Notes</label>
+          <input type="text" id="reminderNoteInput" placeholder="e.g. Dismissal 4:00 PM (30 min early)" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white outline-none" />
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button onclick="saveNewReminder()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg transition">Save Reminder</button>
+          <button onclick="toggleReminderForm()" class="bg-slate-800 text-slate-400 px-3 py-2 rounded-lg hover:text-white">Cancel</button>
         </div>
       </div>
 
-      <!-- Weekly Weight Tracker -->
-      <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
-        <div class="flex justify-between items-start">
-          <span class="text-2xl">⚖️</span>
-          <span id="weightDisplayBadge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">130 kg</span>
-        </div>
-        <div class="mt-2">
-          <p class="text-xs font-bold text-white">Weekly Weight</p>
-          <p class="text-[10px] text-slate-400">Measured 1x weekly</p>
-        </div>
-        <div class="mt-2">
-          <button onclick="logWeeklyWeight()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1 rounded border border-slate-700 font-semibold">
-            Update Weight
-          </button>
-        </div>
-      </div>
+      <div id="remindersList" class="space-y-2"></div>
     </div>
 
     <!-- Movement Break Generator with Visual Guideline & Safety Checklist -->
@@ -302,7 +325,6 @@
         </button>
       </div>
 
-      <!-- Visual Guideline Card -->
       <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-3">
         <div class="flex items-start justify-between">
           <div class="flex items-center space-x-3">
@@ -312,7 +334,7 @@
             <div>
               <div class="flex items-center space-x-2">
                 <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Twister Chest Squeezes</p>
-                <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~8 kcal</span>
+                <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~7 kcal</span>
               </div>
               <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5 leading-snug">Hold handles at chest height, compress bars inward, hold 2s.</p>
             </div>
@@ -348,11 +370,11 @@
       </div>
     </div>
 
-    <!-- 3-in-1 Hybrid Nutrition Engine with Voice Dictation 🎙️ -->
+    <!-- 3-in-1 Hybrid Nutrition Engine with Fasting Guardrail & Voice Dictation 🎙️ -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <h2 class="text-sm font-bold text-white">Smart Meal & Nutrition Logger</h2>
-        <span class="text-[10px] text-slate-500">Zero-Cal Auto • Overrides • Voice</span>
+        <span class="text-[10px] text-slate-500">Fasting Guardrail Active</span>
       </div>
 
       <div class="space-y-2">
@@ -411,9 +433,21 @@
     db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
 
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
-    const BASE_SEDENTARY_TDEE = 2650;
 
-    // Movement Database
+    let userWeight = 123.4; // Updated starting weight
+    let weightHistory = [
+      { date: "Oct 18", weight: 124.5 },
+      { date: "Oct 25", weight: 123.4 }
+    ];
+
+    // Dynamic BMR & TDEE Calculations (Mifflin-St Jeor formula for 36M, 175cm)
+    function calculateBMR(w) {
+      return Math.round(10 * w + 6.25 * 175 - 5 * 36 + 5);
+    }
+    function calculateSedentaryTDEE(w) {
+      return Math.round(calculateBMR(w) * 1.2);
+    }
+
     const exercisePool = [
       {
         category: "Equipment / Chest",
@@ -421,7 +455,7 @@
         desc: "Hold handles at chest height, compress bars inward, hold 2s.",
         reps: 12,
         unit: "Twister Squeezes",
-        kcal: 8,
+        baseKcal: 7,
         icon: "💪",
         cues: [
           "Keep elbows up parallel to the floor (do not drop into ribs).",
@@ -435,7 +469,7 @@
         desc: "Hold twister low or vertically, squeeze to work biceps and forearms.",
         reps: 15,
         unit: "Twister Flexes",
-        kcal: 6,
+        baseKcal: 5,
         icon: "🦾",
         cues: [
           "Keep wrists straight to prevent tendon strain.",
@@ -449,7 +483,7 @@
         desc: "Sit fully in office chair, pause 1s, stand tall without hands.",
         reps: 10,
         unit: "Squats",
-        kcal: 6,
+        baseKcal: 5,
         icon: "🪑",
         cues: [
           "Push hips backward first as if reaching for the back of the seat.",
@@ -463,7 +497,7 @@
         desc: "Palms on desk edge at an angle. Zero wrist floor strain.",
         reps: 12,
         unit: "Push-ups",
-        kcal: 4,
+        baseKcal: 4,
         icon: "🖥️",
         cues: [
           "Hands shoulder-width apart on sturdy desk edge.",
@@ -477,7 +511,7 @@
         desc: "Sit tall, pull alternating knees to chest. Zero spinal pressure.",
         reps: 20,
         unit: "Knee Raises",
-        kcal: 5,
+        baseKcal: 4,
         icon: "🦵",
         cues: [
           "Sit tall on edge of chair with shoulders rolled back.",
@@ -491,7 +525,7 @@
         desc: "Hands on chair back, lift heels high.",
         reps: 15,
         unit: "Calf Raises",
-        kcal: 4,
+        baseKcal: 4,
         icon: "🦶",
         cues: [
           "Keep fingertips on chair back purely for balance.",
@@ -506,19 +540,15 @@
     const todayDocRef = db.collection("health_daily").doc(todayKey);
     const metaDocRef = db.collection("health_meta").doc("user_stats");
 
-    let userWeight = 130;
-
     let appData = {
       water: 0,
       exerciseLogs: [],
       meals: [],
-      // Walk state
       walkActive: false,
       walkStartTime: null,
       walkDurationMinutes: 0,
       walkKcal: 0,
       walkCompleted: false,
-      // Sleep state
       sleepActive: false,
       sleepStartTime: null,
       sleepPaused: false,
@@ -531,11 +561,17 @@
       ]
     };
 
+    // Load weight & history metadata
     metaDocRef.onSnapshot(doc => {
-      if (doc.exists && doc.data().weight) {
-        userWeight = doc.data().weight;
-        document.getElementById('weightDisplayBadge').textContent = `${userWeight} kg`;
+      if (doc.exists) {
+        const d = doc.data();
+        if (d.weight) userWeight = d.weight;
+        if (d.history && Array.isArray(d.history)) weightHistory = d.history;
+      } else {
+        metaDocRef.set({ weight: userWeight, history: weightHistory });
       }
+      renderWeightHub();
+      renderState();
     });
 
     todayDocRef.onSnapshot((doc) => {
@@ -561,205 +597,106 @@
     }
 
     // ----------------------------------------------------
-    // 2. LIVE MORNING WALK SESSION (Naic, Cavite Calibrated)
+    // 2. Weight Hub, Milestones & Dynamic SVG Graph
     // ----------------------------------------------------
-    function toggleWalkSession() {
-      if (!appData.walkActive) {
-        // Start walk
-        appData.walkActive = true;
-        appData.walkStartTime = Date.now();
-        appData.walkCompleted = false;
-      } else {
-        // Finish walk
-        const elapsedMs = Date.now() - appData.walkStartTime;
-        const minutes = Math.max(1, Math.round(elapsedMs / 60000));
-        
-        // 130kg + Naic tropical morning heat/humidity factor: ~7.41 kcal per minute
-        const burned = Math.round(minutes * (userWeight * 0.057));
+    function renderWeightHub() {
+      document.getElementById('currentWeightVal').textContent = `${userWeight} kg`;
+      document.getElementById('bmrLabel').textContent = `BMR: ~${calculateBMR(userWeight)}k`;
+      document.getElementById('baseTdeeDisplay').textContent = `Base Burn: ${calculateSedentaryTDEE(userWeight).toLocaleString()} kcal`;
+      document.getElementById('walkRateSubtitle').textContent = `Naic Stroll (~${(userWeight * 0.057).toFixed(1)} kcal/min)`;
 
-        appData.walkActive = false;
-        appData.walkDurationMinutes = minutes;
-        appData.walkKcal = burned;
-        appData.walkCompleted = true;
-      }
-      pushUpdate();
+      // Target milestones
+      const milestones = [120, 115, 110, 105, 100, 95];
+      let nextM = milestones.find(m => m < userWeight) || 120;
+      document.getElementById('nextMilestoneVal').textContent = `${nextM}.0 kg`;
+      const gap = (userWeight - nextM).toFixed(1);
+      document.getElementById('milestoneGapVal').textContent = `${gap} kg to go`;
+
+      const startWeight = weightHistory.length ? weightHistory[0].weight : userWeight;
+      const totalLost = (startWeight - userWeight).toFixed(1);
+      document.getElementById('totalWeightLostVal').textContent = `${totalLost > 0 ? '-' + totalLost : totalLost} kg`;
+
+      // Next weigh-in (next Sunday)
+      const now = new Date();
+      const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
+      document.getElementById('nextWeighInText').textContent = daysUntilSunday === 0 ? "Next weigh-in: Today (Sunday post-sleep)!" : `Next weigh-in: Sunday (in ${daysUntilSunday} day${daysUntilSunday > 1 ? 's' : ''})`;
+
+      renderWeightSvg();
     }
 
-    function updateLiveWalkUI() {
-      const activeBox = document.getElementById('walkActiveBox');
-      const completedBox = document.getElementById('walkCompletedBox');
-      const startBtn = document.getElementById('walkStartBtn');
-      const badge = document.getElementById('walkStatusBadge');
-
-      if (appData.walkActive && appData.walkStartTime) {
-        activeBox.classList.remove('hidden');
-        completedBox.classList.add('hidden');
-        badge.textContent = "Walking Now";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse";
-        startBtn.textContent = "🏁 Finish Walk & Log Burn";
-        startBtn.className = "w-full bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-
-        const elapsedSec = Math.floor((Date.now() - appData.walkStartTime) / 1000);
-        const m = Math.floor(elapsedSec / 60);
-        const s = elapsedSec % 60;
-        document.getElementById('liveWalkTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        
-        const liveKcal = Math.round((elapsedSec / 60) * (userWeight * 0.057));
-        document.getElementById('liveWalkBurn').textContent = `+${liveKcal} kcal burned so far (Naic stroll)`;
-      } else if (appData.walkCompleted) {
-        activeBox.classList.add('hidden');
-        completedBox.classList.remove('hidden');
-        badge.textContent = `✓ ${appData.walkDurationMinutes}m Walk`;
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
-        startBtn.textContent = "🔄 Start Another Walk";
-        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
-        document.getElementById('walkSummaryText').textContent = `Walk Logged: ${appData.walkDurationMinutes} mins (+${appData.walkKcal} kcal)`;
-      } else {
-        activeBox.classList.add('hidden');
-        completedBox.classList.add('hidden');
-        badge.textContent = "Ready";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
-        startBtn.textContent = "🚶 Start Morning Walk";
-        startBtn.className = "w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-      }
-    }
-
-    // ----------------------------------------------------
-    // 3. LIVE DAY SLEEP SESSION (Bedtime Press & Wake Press)
-    // ----------------------------------------------------
-    function toggleSleepSession() {
-      if (!appData.sleepActive) {
-        // Going to sleep now
-        appData.sleepActive = true;
-        appData.sleepStartTime = Date.now();
-        appData.sleepPaused = false;
-        appData.sleepPausedDurationMs = 0;
-        appData.sleepCompleted = false;
-      } else {
-        // Waking up
-        let totalMs = Date.now() - appData.sleepStartTime;
-        if (appData.sleepPaused && appData.sleepPauseStartTime) {
-          appData.sleepPausedDurationMs += (Date.now() - appData.sleepPauseStartTime);
-        }
-        totalMs -= (appData.sleepPausedDurationMs || 0);
-
-        const hours = (Math.max(0, totalMs) / (1000 * 3600)).toFixed(1);
-
-        appData.sleepActive = false;
-        appData.sleepPaused = false;
-        appData.sleepDurationHours = parseFloat(hours);
-        appData.sleepCompleted = true;
-      }
-      pushUpdate();
-    }
-
-    function togglePeeBreak() {
-      if (!appData.sleepActive) return;
-
-      if (!appData.sleepPaused) {
-        appData.sleepPaused = true;
-        appData.sleepPauseStartTime = Date.now();
-      } else {
-        appData.sleepPaused = false;
-        if (appData.sleepPauseStartTime) {
-          appData.sleepPausedDurationMs = (appData.sleepPausedDurationMs || 0) + (Date.now() - appData.sleepPauseStartTime);
-          appData.sleepPauseStartTime = null;
-        }
-      }
-      pushUpdate();
-    }
-
-    function updateLiveSleepUI() {
-      const activeBox = document.getElementById('sleepActiveBox');
-      const completedBox = document.getElementById('sleepCompletedBox');
-      const startBtn = document.getElementById('sleepStartBtn');
-      const peeBtn = document.getElementById('peeBreakBtn');
-      const badge = document.getElementById('sleepStatusBadge');
-
-      if (appData.sleepActive && appData.sleepStartTime) {
-        activeBox.classList.remove('hidden');
-        completedBox.classList.add('hidden');
-        peeBtn.classList.remove('hidden');
-
-        if (appData.sleepPaused) {
-          badge.textContent = "Paused (Pee break)";
-          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800";
-          peeBtn.textContent = "▶️ Back to Bed (Resume Sleep)";
-          peeBtn.className = "w-full bg-amber-800 hover:bg-amber-700 text-white font-bold text-[10px] py-1.5 rounded-lg";
-        } else {
-          badge.textContent = "Sleeping 🌙";
-          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 animate-pulse";
-          peeBtn.textContent = "🚽 Pause for Bathroom Break";
-          peeBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1.5 rounded-lg border border-slate-700";
-        }
-
-        startBtn.textContent = "☀️ I'm Awake (Stop Timer)";
-        startBtn.className = "w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-
-        let currentActiveMs = Date.now() - appData.sleepStartTime - (appData.sleepPausedDurationMs || 0);
-        if (appData.sleepPaused && appData.sleepPauseStartTime) {
-          currentActiveMs -= (Date.now() - appData.sleepPauseStartTime);
-        }
-        currentActiveMs = Math.max(0, currentActiveMs);
-
-        const totalMinutes = Math.floor(currentActiveMs / 60000);
-        const h = Math.floor(totalMinutes / 60);
-        const m = totalMinutes % 60;
-        document.getElementById('liveSleepTimer').textContent = `${h}h ${String(m).padStart(2,'0')}m`;
-        
-        const startTimeStr = new Date(appData.sleepStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('sleepStartedAt').textContent = `In bed since ${startTimeStr}`;
-      } else if (appData.sleepCompleted) {
-        activeBox.classList.add('hidden');
-        completedBox.classList.remove('hidden');
-        peeBtn.classList.add('hidden');
-        badge.textContent = `✓ ${appData.sleepDurationHours}h Slept`;
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800";
-        startBtn.textContent = "🛏️ Start New Sleep";
-        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
-        document.getElementById('sleepSummaryText').textContent = `Rest Logged: ${appData.sleepDurationHours} hours of sleep`;
-      } else {
-        activeBox.classList.add('hidden');
-        completedBox.classList.add('hidden');
-        peeBtn.classList.add('hidden');
-        badge.textContent = "Ready";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
-        startBtn.textContent = "🛏️ Going to Sleep";
-        startBtn.className = "w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-      }
-    }
-
-    // ----------------------------------------------------
-    // 4. Voice Dictation & Food Engine
-    // ----------------------------------------------------
-    function startDictation(targetInputId, callback) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("Speech recognition is not supported on this browser. Try Google Chrome or Safari.");
+    function renderWeightSvg() {
+      const svg = document.getElementById('weightSvgChart');
+      if (!weightHistory || weightHistory.length < 2) {
+        svg.innerHTML = '<text x="160" y="50" fill="#64748b" font-size="11" text-anchor="middle">Log another week to plot trend line.</text>';
         return;
       }
 
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-PH';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
+      const pts = weightHistory;
+      const weights = pts.map(p => p.weight);
+      const minW = Math.min(...weights) - 1;
+      const maxW = Math.max(...weights) + 1;
+      const width = 320;
+      const height = 90;
+      const padX = 25;
+      const padY = 15;
 
-      const micBtn = document.getElementById(targetInputId + 'MicBtn');
-      if (micBtn) micBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
+      const stepX = (width - 2 * padX) / (pts.length - 1);
+      const coords = pts.map((p, idx) => {
+        const x = padX + (idx * stepX);
+        const y = height - padY - (((p.weight - minW) / (maxW - minW || 1)) * (height - 2 * padY));
+        return { x, y, ...p };
+      });
 
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        const input = document.getElementById(targetInputId);
-        input.value = transcript;
-        if (callback) callback();
-      };
+      const pathD = coords.reduce((acc, c, idx) => idx === 0 ? `M ${c.x} ${c.y}` : `${acc} L ${c.x} ${c.y}`, '');
 
-      recognition.onerror = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
-      recognition.onend = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
+      let svgHtml = `
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#f59e0b" />
+            <stop offset="100%" stop-color="#10b981" />
+          </linearGradient>
+        </defs>
+        <!-- Horizontal Guide Line -->
+        <line x1="${padX}" y1="${height - padY}" x2="${width - padX}" y2="${height - padY}" stroke="#1e293b" stroke-width="1" stroke-dasharray="3,3" />
+        <!-- Trend Path -->
+        <path d="${pathD}" fill="none" stroke="url(#lineGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      `;
 
-      recognition.start();
+      coords.forEach(c => {
+        svgHtml += `
+          <circle cx="${c.x}" cy="${c.y}" r="4" fill="#0f172a" stroke="#10b981" stroke-width="2" />
+          <text x="${c.x}" y="${c.y - 7}" fill="#94a3b8" font-size="9" font-family="monospace" text-anchor="middle">${c.weight}k</text>
+          <text x="${c.x}" y="${height}" fill="#64748b" font-size="8" text-anchor="middle">${c.date}</text>
+        `;
+      });
+
+      svg.innerHTML = svgHtml;
     }
 
+    async function logWeeklyWeight() {
+      const input = prompt(`Enter your weekly weigh-in in kg (Last: ${userWeight} kg):`, userWeight);
+      if (!input) return;
+      const parsed = parseFloat(input);
+      if (isNaN(parsed) || parsed < 50 || parsed > 250) {
+        alert("Please enter a realistic weight.");
+        return;
+      }
+      userWeight = parsed;
+      const now = new Date();
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const dateLabel = `${monthNames[now.getMonth()]} ${now.getDate()}`;
+
+      weightHistory.push({ date: dateLabel, weight: userWeight });
+      if (weightHistory.length > 8) weightHistory.shift(); // Keep last 8 entries clean
+
+      await metaDocRef.set({ weight: userWeight, history: weightHistory, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      renderWeightHub();
+      renderState();
+    }
+
+    // ----------------------------------------------------
+    // 3. Fasting Guardrail & Food Engine
+    // ----------------------------------------------------
     function parseQuantity(text, keyword) {
       const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc|cups|cup|slices|slice|mugs|mug)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
       const match = text.match(regex);
@@ -885,6 +822,19 @@
 
       const kcal = parseInt(kcalVal, 10);
 
+      // Fasting Breaker Guardrail Check (12:00 AM to 3:00 PM)
+      const now = new Date();
+      const currentSeconds = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+      const FAST_END_SECONDS = 15 * 3600;
+
+      if (currentSeconds < FAST_END_SECONDS && kcal > 15) {
+        const hoursDone = (currentSeconds / 3600).toFixed(1);
+        const confirmBreak = confirm(
+          `⚠️ FASTING GUARDRAIL:\n\nYour target eating window opens at 3:00 PM. You have currently fasted for ${hoursDone} hours.\n\nLogging this food (${kcal} kcal) will break your fast. Are you sure you want to proceed?`
+        );
+        if (!confirmBreak) return;
+      }
+
       if (!appData.meals) appData.meals = [];
       appData.meals.unshift({
         desc,
@@ -905,81 +855,172 @@
     }
 
     // ----------------------------------------------------
-    // 5. Weight, Water & Movements
+    // 4. Live Walk & Live Sleep Sessions
     // ----------------------------------------------------
-    function addWater(amount) {
-      appData.water = (appData.water || 0) + amount;
-      pushUpdate();
-    }
+    function toggleWalkSession() {
+      if (!appData.walkActive) {
+        appData.walkActive = true;
+        appData.walkStartTime = Date.now();
+        appData.walkCompleted = false;
+      } else {
+        const elapsedMs = Date.now() - appData.walkStartTime;
+        const minutes = Math.max(1, Math.round(elapsedMs / 60000));
+        const burned = Math.round(minutes * (userWeight * 0.057));
 
-    async function logWeeklyWeight() {
-      const input = prompt(`Enter your current weight in kg (Current: ${userWeight} kg):`, userWeight);
-      if (!input) return;
-      const parsed = parseFloat(input);
-      if (isNaN(parsed) || parsed < 50 || parsed > 250) {
-        alert("Please enter a realistic weight.");
-        return;
+        appData.walkActive = false;
+        appData.walkDurationMinutes = minutes;
+        appData.walkKcal = burned;
+        appData.walkCompleted = true;
       }
-      userWeight = parsed;
-      await metaDocRef.set({ weight: userWeight, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
-      document.getElementById('weightDisplayBadge').textContent = `${userWeight} kg`;
-    }
-
-    function cycleExercise() {
-      currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
-      updateExerciseCard();
-    }
-
-    function updateExerciseCard() {
-      const ex = exercisePool[currentPoolIndex];
-      document.getElementById('exerciseCategoryBadge').textContent = `Zone: ${ex.category}`;
-      document.getElementById('exerciseName').textContent = ex.name;
-      document.getElementById('exerciseDesc').textContent = ex.desc;
-      document.getElementById('exerciseBurnBadge').textContent = `~${ex.kcal} kcal`;
-      document.getElementById('exerciseVisualIcon').textContent = ex.icon;
-
-      const cueList = document.getElementById('exerciseSafetyCues');
-      cueList.innerHTML = ex.cues.map(c => `<li>${c}</li>`).join('');
-    }
-
-    function completeCurrentExercise() {
-      const ex = exercisePool[currentPoolIndex];
-      if (!appData.exerciseLogs) appData.exerciseLogs = [];
-
-      appData.exerciseLogs.unshift({
-        id: Date.now(),
-        name: ex.name,
-        category: ex.category,
-        reps: ex.reps,
-        unit: ex.unit,
-        kcal: ex.kcal,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      });
-
       pushUpdate();
-      cycleExercise();
     }
 
-    function flagJointIssue() {
-      alert("Prioritizing seated twister exercises and seated knee raises to keep your knees completely safe.");
-      currentPoolIndex = 0;
-      updateExerciseCard();
+    function updateLiveWalkUI() {
+      const activeBox = document.getElementById('walkActiveBox');
+      const completedBox = document.getElementById('walkCompletedBox');
+      const startBtn = document.getElementById('walkStartBtn');
+      const badge = document.getElementById('walkStatusBadge');
+
+      if (appData.walkActive && appData.walkStartTime) {
+        activeBox.classList.remove('hidden');
+        completedBox.classList.add('hidden');
+        badge.textContent = "Walking Now";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse";
+        startBtn.textContent = "🏁 Finish Walk & Log Burn";
+        startBtn.className = "w-full bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+
+        const elapsedSec = Math.floor((Date.now() - appData.walkStartTime) / 1000);
+        const m = Math.floor(elapsedSec / 60);
+        const s = elapsedSec % 60;
+        document.getElementById('liveWalkTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const liveKcal = Math.round((elapsedSec / 60) * (userWeight * 0.057));
+        document.getElementById('liveWalkBurn').textContent = `+${liveKcal} kcal burned (Dynamic)`;
+      } else if (appData.walkCompleted) {
+        activeBox.classList.add('hidden');
+        completedBox.classList.remove('hidden');
+        badge.textContent = `✓ ${appData.walkDurationMinutes}m Walk`;
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
+        startBtn.textContent = "🔄 Start Another Walk";
+        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
+        document.getElementById('walkSummaryText').textContent = `Walk Logged: ${appData.walkDurationMinutes} mins (+${appData.walkKcal} kcal)`;
+      } else {
+        activeBox.classList.add('hidden');
+        completedBox.classList.add('hidden');
+        badge.textContent = "Ready";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        startBtn.textContent = "🚶 Start Morning Walk";
+        startBtn.className = "w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+      }
     }
 
-    function deleteExerciseLog(id) {
-      appData.exerciseLogs = appData.exerciseLogs.filter(e => e.id !== id);
+    function toggleSleepSession() {
+      if (!appData.sleepActive) {
+        appData.sleepActive = true;
+        appData.sleepStartTime = Date.now();
+        appData.sleepPaused = false;
+        appData.sleepPausedDurationMs = 0;
+        appData.sleepCompleted = false;
+      } else {
+        let totalMs = Date.now() - appData.sleepStartTime;
+        if (appData.sleepPaused && appData.sleepPauseStartTime) {
+          appData.sleepPausedDurationMs += (Date.now() - appData.sleepPauseStartTime);
+        }
+        totalMs -= (appData.sleepPausedDurationMs || 0);
+        const hours = (Math.max(0, totalMs) / (1000 * 3600)).toFixed(1);
+
+        appData.sleepActive = false;
+        appData.sleepPaused = false;
+        appData.sleepDurationHours = parseFloat(hours);
+        appData.sleepCompleted = true;
+      }
       pushUpdate();
+    }
+
+    function togglePeeBreak() {
+      if (!appData.sleepActive) return;
+      if (!appData.sleepPaused) {
+        appData.sleepPaused = true;
+        appData.sleepPauseStartTime = Date.now();
+      } else {
+        appData.sleepPaused = false;
+        if (appData.sleepPauseStartTime) {
+          appData.sleepPausedDurationMs = (appData.sleepPausedDurationMs || 0) + (Date.now() - appData.sleepPauseStartTime);
+          appData.sleepPauseStartTime = null;
+        }
+      }
+      pushUpdate();
+    }
+
+    function updateLiveSleepUI() {
+      const activeBox = document.getElementById('sleepActiveBox');
+      const completedBox = document.getElementById('sleepCompletedBox');
+      const startBtn = document.getElementById('sleepStartBtn');
+      const peeBtn = document.getElementById('peeBreakBtn');
+      const badge = document.getElementById('sleepStatusBadge');
+
+      if (appData.sleepActive && appData.sleepStartTime) {
+        activeBox.classList.remove('hidden');
+        completedBox.classList.add('hidden');
+        peeBtn.classList.remove('hidden');
+
+        if (appData.sleepPaused) {
+          badge.textContent = "Paused (Pee break)";
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800";
+          peeBtn.textContent = "▶️ Back to Bed (Resume Sleep)";
+          peeBtn.className = "w-full bg-amber-800 hover:bg-amber-700 text-white font-bold text-[10px] py-1.5 rounded-lg";
+        } else {
+          badge.textContent = "Sleeping 🌙";
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 animate-pulse";
+          peeBtn.textContent = "🚽 Pause for Bathroom Break";
+          peeBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1.5 rounded-lg border border-slate-700";
+        }
+
+        startBtn.textContent = "☀️ I'm Awake (Stop Timer)";
+        startBtn.className = "w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+
+        let currentActiveMs = Date.now() - appData.sleepStartTime - (appData.sleepPausedDurationMs || 0);
+        if (appData.sleepPaused && appData.sleepPauseStartTime) {
+          currentActiveMs -= (Date.now() - appData.sleepPauseStartTime);
+        }
+        currentActiveMs = Math.max(0, currentActiveMs);
+
+        const totalMinutes = Math.floor(currentActiveMs / 60000);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        document.getElementById('liveSleepTimer').textContent = `${h}h ${String(m).padStart(2,'0')}m`;
+        const startTimeStr = new Date(appData.sleepStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('sleepStartedAt').textContent = `In bed since ${startTimeStr}`;
+      } else if (appData.sleepCompleted) {
+        activeBox.classList.add('hidden');
+        completedBox.classList.remove('hidden');
+        peeBtn.classList.add('hidden');
+        badge.textContent = `✓ ${appData.sleepDurationHours}h Slept`;
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800";
+        startBtn.textContent = "🛏️ Start New Sleep";
+        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
+        document.getElementById('sleepSummaryText').textContent = `Rest Logged: ${appData.sleepDurationHours} hours of sleep`;
+      } else {
+        activeBox.classList.add('hidden');
+        completedBox.classList.add('hidden');
+        peeBtn.classList.add('hidden');
+        badge.textContent = "Ready";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        startBtn.textContent = "🛏️ Going to Sleep";
+        startBtn.className = "w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+      }
     }
 
     // ----------------------------------------------------
-    // 6. Fasting & Rest Day Schedule
+    // 5. Fasting & Schedule (Canadian 9 PM - 5 AM, Walk 6 AM)
     // ----------------------------------------------------
     function isRestDay(now) {
       const day = now.getDay();
       const hours = now.getHours();
+      // Saturday 6:00 AM onwards
       if (day === 6 && hours >= 6) return true;
       if (day === 0) return true;
-      if (day === 1 && hours < 20) return true;
+      // Monday before 9:00 PM kickoff
+      if (day === 1 && hours < 21) return true;
       return false;
     }
 
@@ -1003,6 +1044,14 @@
       const bannerTitle = document.getElementById('bannerTitle');
       const bannerSub = document.getElementById('bannerSubtitle');
       const bannerBadge = document.getElementById('bannerBadge');
+      const hydrationBanner = document.getElementById('hydrationNudgeBanner');
+
+      // Hydration Checkpoint (Trigger at 1:00 AM - 4:00 AM if water < 1000ml)
+      if (hours >= 1 && hours < 5 && (appData.water || 0) < 1000) {
+        hydrationBanner.classList.remove('hidden');
+      } else {
+        hydrationBanner.classList.add('hidden');
+      }
 
       const resting = isRestDay(now);
 
@@ -1013,28 +1062,29 @@
         bannerBadge.textContent = "Rest Days";
         bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-900 text-emerald-200 border border-emerald-700";
       } else {
-        if (hours >= 20 && hours < 24) {
+        // Canadian Work Cycle (9:00 PM to 5:00 AM shift)
+        if (hours >= 21 || hours < 5) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-indigo-950/60 border-indigo-700/60";
-          bannerTitle.textContent = "🇨🇦 8:00 PM: Canadian Shift Kickoff";
-          bannerSub.textContent = "Shift started. Do a quick twister squeeze or desk break before diving into work.";
-          bannerBadge.textContent = "Work Active";
+          bannerTitle.textContent = "🇨🇦 9:00 PM – 5:00 AM Canadian Shift";
+          bannerSub.textContent = "Shift active. Log posture breaks & maintain focus before 5:00 AM logoff.";
+          bannerBadge.textContent = "Work Shift";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-indigo-800 text-indigo-200";
-        } else if (hours >= 2 && hours < 5) {
+        } else if (hours >= 5 && hours < 6) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-amber-950/60 border-amber-700/60";
-          bannerTitle.textContent = "⚡ 3:00 AM Graveyard Slump Reset";
-          bannerSub.textContent = "Alertness slump. 10 twister squeezes wake up blood flow without late snacking.";
-          bannerBadge.textContent = "Slump Window";
+          bannerTitle.textContent = "☕ 5:00 AM – 6:00 AM Wind-Down Buffer";
+          bannerSub.textContent = "Shift finished. Relax and wait for wife's 6:00 AM logoff before the morning walk.";
+          bannerBadge.textContent = "Wind Down";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-amber-800 text-amber-200";
         } else if (hours >= 6 && hours < 7) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-emerald-950/60 border-emerald-700/60";
           bannerTitle.textContent = "🌅 6:00 AM Morning Walk Window";
-          bannerSub.textContent = "Shift complete! Join your wife for the morning walk before bedtime.";
+          bannerSub.textContent = "Wife finished work! Step outside for the morning stroll before bed.";
           bannerBadge.textContent = "Walk Time";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-800 text-emerald-200";
         } else {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-slate-900 border-slate-800";
           bannerTitle.textContent = "Canadian Work Cycle";
-          bannerSub.textContent = "Shift: 8PM–6AM • Fast: 12AM–3PM • Sleep: 7AM–2:30PM";
+          bannerSub.textContent = "Shift: 9PM–5AM • Walk: 6AM • Sleep: 7AM–3PM • Eat: 3PM–12AM";
           bannerBadge.textContent = "Work Day";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-400";
         }
@@ -1105,19 +1155,96 @@
     }
 
     // ----------------------------------------------------
+    // 6. Voice, Habits & Exercise
+    // ----------------------------------------------------
+    function startDictation(targetInputId, callback) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Speech recognition is not supported on this browser.");
+        return;
+      }
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-PH';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      const micBtn = document.getElementById(targetInputId + 'MicBtn');
+      if (micBtn) micBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
+
+      recognition.onresult = (event) => {
+        document.getElementById(targetInputId).value = event.results[0][0].transcript;
+        if (callback) callback();
+      };
+      recognition.onerror = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
+      recognition.onend = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
+      recognition.start();
+    }
+
+    function addWater(amount) {
+      appData.water = (appData.water || 0) + amount;
+      pushUpdate();
+    }
+
+    function cycleExercise() {
+      currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
+      updateExerciseCard();
+    }
+
+    function updateExerciseCard() {
+      const ex = exercisePool[currentPoolIndex];
+      const dynKcal = Math.round(ex.baseKcal * (userWeight / 123.4));
+      document.getElementById('exerciseCategoryBadge').textContent = `Zone: ${ex.category}`;
+      document.getElementById('exerciseName').textContent = ex.name;
+      document.getElementById('exerciseDesc').textContent = ex.desc;
+      document.getElementById('exerciseBurnBadge').textContent = `~${dynKcal} kcal`;
+      document.getElementById('exerciseVisualIcon').textContent = ex.icon;
+
+      const cueList = document.getElementById('exerciseSafetyCues');
+      cueList.innerHTML = ex.cues.map(c => `<li>${c}</li>`).join('');
+    }
+
+    function completeCurrentExercise() {
+      const ex = exercisePool[currentPoolIndex];
+      const dynKcal = Math.round(ex.baseKcal * (userWeight / 123.4));
+      if (!appData.exerciseLogs) appData.exerciseLogs = [];
+
+      appData.exerciseLogs.unshift({
+        id: Date.now(),
+        name: ex.name,
+        category: ex.category,
+        reps: ex.reps,
+        unit: ex.unit,
+        kcal: dynKcal,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      pushUpdate();
+      cycleExercise();
+    }
+
+    function flagJointIssue() {
+      alert("Prioritizing seated twister exercises and seated knee raises to keep your knees completely safe.");
+      currentPoolIndex = 0;
+      updateExerciseCard();
+    }
+
+    function deleteExerciseLog(id) {
+      appData.exerciseLogs = appData.exerciseLogs.filter(e => e.id !== id);
+      pushUpdate();
+    }
+
+    // ----------------------------------------------------
     // 7. Alarms & Reminders Engine
     // ----------------------------------------------------
     function toggleReminderForm() {
       document.getElementById('addReminderForm').classList.toggle('hidden');
     }
-
     function toggleDateSelector() {
       const type = document.getElementById('reminderTypeSelect').value;
       const dateBox = document.getElementById('futureDateContainer');
       if (type === 'future') dateBox.classList.remove('hidden');
       else dateBox.classList.add('hidden');
     }
-
     function saveNewReminder() {
       const label = document.getElementById('reminderLabelInput').value.trim();
       const type = document.getElementById('reminderTypeSelect').value;
@@ -1125,112 +1252,67 @@
       const date = document.getElementById('reminderDateInput').value;
       const note = document.getElementById('reminderNoteInput').value.trim();
 
-      if (!label || !time) {
-        alert("Please enter a reminder title and time.");
-        return;
-      }
-      if (type === 'future' && !date) {
-        alert("Please select a date.");
-        return;
-      }
-
+      if (!label || !time) return;
       if (!appData.reminders) appData.reminders = [];
-      appData.reminders.push({
-        id: Date.now(),
-        label,
-        type,
-        time,
-        date: type === 'future' ? date : '',
-        note,
-        alertedToday: false
-      });
+      appData.reminders.push({ id: Date.now(), label, type, time, date: type === 'future' ? date : '', note, alertedToday: false });
 
       pushUpdate();
       toggleReminderForm();
-
       document.getElementById('reminderLabelInput').value = '';
-      document.getElementById('reminderNoteInput').value = '';
-      document.getElementById('reminderDateInput').value = '';
     }
-
     function deleteReminder(id) {
-      if (!confirm("Delete this reminder?")) return;
       appData.reminders = appData.reminders.filter(r => r.id !== id);
       pushUpdate();
       renderReminders();
     }
-
     function checkReminders() {
       const now = new Date();
-      const currentHours = String(now.getHours()).padStart(2, '0');
-      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
-      const currentTimeStr = `${currentHours}:${currentMinutes}`;
+      const currentTimeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
       const currentDateStr = now.toISOString().slice(0, 10);
       const day = now.getDay();
 
       (appData.reminders || []).forEach(r => {
         if (r.type === 'weekday' && (day === 0 || day === 6)) return;
         if (r.type === 'future' && r.date !== currentDateStr) return;
-
         if (r.time === currentTimeStr && !r.alertedToday) {
           triggerAlarm(r);
           r.alertedToday = true;
           pushUpdate();
         }
-
-        if (currentTimeStr === "00:01") {
-          r.alertedToday = false;
-        }
+        if (currentTimeStr === "00:01") r.alertedToday = false;
       });
     }
-
     function triggerAlarm(reminder) {
       playLoudChime();
-      const popup = document.getElementById('alarmPopup');
       document.getElementById('alarmTitle').textContent = `⏰ ${reminder.label}`;
       document.getElementById('alarmSubtitle').textContent = reminder.note || `Time: ${format12Hour(reminder.time)}`;
-      popup.classList.remove('hidden');
-
+      document.getElementById('alarmPopup').classList.remove('hidden');
       if ("Notification" in window && Notification.permission === "granted") {
-        new Notification(reminder.label, {
-          body: reminder.note || `Scheduled alert at ${format12Hour(reminder.time)}`,
-          icon: "https://cdn-icons-png.flaticon.com/512/883/883256.png"
-        });
+        new Notification(reminder.label, { body: reminder.note || `Alert at ${format12Hour(reminder.time)}` });
       }
     }
-
     function dismissAlarm() {
       document.getElementById('alarmPopup').classList.add('hidden');
     }
-
     function renderReminders() {
       const container = document.getElementById('remindersList');
       if (!appData.reminders || !appData.reminders.length) {
         container.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No active reminders.</p>';
         return;
       }
-
-      container.innerHTML = appData.reminders.map(r => {
-        let badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Mon–Fri</span>';
-        if (r.type === 'daily') badge = '<span class="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">Daily</span>';
-        if (r.type === 'future') badge = `<span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-950 text-amber-300 border border-amber-800">📅 ${r.date}</span>`;
-
-        return `
-          <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
-            <div>
-              <div class="flex items-center space-x-2">
-                <span class="font-mono text-amber-400 font-bold">${format12Hour(r.time)}</span>
-                <span class="font-semibold text-slate-200">${r.label}</span>
-                ${badge}
-              </div>
-              ${r.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${r.note}</p>` : ''}
+      container.innerHTML = appData.reminders.map(r => `
+        <div class="p-2.5 bg-slate-950 border border-slate-800 rounded-lg flex items-center justify-between text-xs">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="font-mono text-amber-400 font-bold">${format12Hour(r.time)}</span>
+              <span class="font-semibold text-slate-200">${r.label}</span>
             </div>
-            <button onclick="deleteReminder(${r.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
+            ${r.note ? `<p class="text-[10px] text-slate-400 mt-0.5">${r.note}</p>` : ''}
           </div>
-        `;
-      }).join('');
+          <button onclick="deleteReminder(${r.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1">✕</button>
+        </div>
+      `).join('');
     }
-
     function format12Hour(timeStr) {
       if (!timeStr) return '';
       const [h, m] = timeStr.split(':');
@@ -1239,52 +1321,30 @@
       hours = hours % 12 || 12;
       return `${hours}:${m} ${ampm}`;
     }
-
     function playLoudChime() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        for (let i = 0; i < 3; i++) {
-          const osc = audioCtx.createOscillator();
-          const gain = audioCtx.createGain();
-          osc.type = "triangle";
-          osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + (i * 0.25));
-          osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + (i * 0.25) + 0.2);
-          gain.gain.setValueAtTime(0.2, audioCtx.currentTime + (i * 0.25));
-          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.25) + 0.2);
-          osc.connect(gain);
-          gain.connect(audioCtx.destination);
-          osc.start(audioCtx.currentTime + (i * 0.25));
-          osc.stop(audioCtx.currentTime + (i * 0.25) + 0.2);
-        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
       } catch(e) {}
     }
-
     function requestNotificationAccess() {
-      if (!("Notification" in window)) {
-        alert("Notifications are not supported on this browser.");
-        return;
-      }
-      Notification.requestPermission().then(permission => {
-        const btn = document.getElementById('notifBtn');
-        if (permission === "granted") {
-          btn.textContent = "🔔 Active";
-          btn.className = "text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-1 rounded";
-          new Notification("Health Buddy Ready", { body: "Your alarms are active!" });
-        }
-      });
+      if ("Notification" in window) Notification.requestPermission();
     }
 
     // ----------------------------------------------------
-    // 8. Caloric Balance & Overall State Render
+    // 8. Overall Caloric Render Loop
     // ----------------------------------------------------
     function renderState() {
-      // Food intake
       let totalEaten = 0;
-      (appData.meals || []).forEach(m => {
-        totalEaten += (m.kcal || 0);
-      });
+      (appData.meals || []).forEach(m => { totalEaten += (m.kcal || 0); });
 
-      // Exercises
       let exerciseBurn = 0;
       const logs = appData.exerciseLogs || [];
       const totals = {};
@@ -1293,10 +1353,10 @@
         totals[l.unit] = (totals[l.unit] || 0) + l.reps;
       });
 
-      // Walk burn
       const walkBurn = appData.walkKcal || 0;
       const totalActiveBurn = exerciseBurn + walkBurn;
-      const grandTotalBurn = BASE_SEDENTARY_TDEE + totalActiveBurn;
+      const currentSedentaryTDEE = calculateSedentaryTDEE(userWeight);
+      const grandTotalBurn = currentSedentaryTDEE + totalActiveBurn;
       const netBalance = totalEaten - grandTotalBurn;
 
       document.getElementById('totalEatenKcal').textContent = `${totalEaten.toLocaleString()} kcal`;
@@ -1317,9 +1377,8 @@
         netLabel.className = "text-[9px] text-rose-500 font-semibold";
       }
 
-      document.getElementById('waterCount').textContent = (appData.water || 0) + " ml";
+      document.getElementById('waterCount').textContent = `${appData.water || 0} ml / 3,000 ml`;
 
-      // Output totals
       const totalSummary = Object.keys(totals).map(u => `${totals[u]} ${u}`).join(' • ');
       document.getElementById('cumulativeOutput').textContent = totalSummary
         ? `${totalSummary} • Total: +${exerciseBurn} kcal burned`
@@ -1343,7 +1402,6 @@
         `).join('');
       }
 
-      // Meals list
       const mealList = document.getElementById('mealList');
       if (!appData.meals || !appData.meals.length) {
         mealList.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No meals logged yet today.</p>';
@@ -1368,6 +1426,7 @@
     }
 
     updateExerciseCard();
+    renderWeightHub();
     setInterval(updateFastingCycle, 1000);
     setInterval(updateLiveWalkUI, 1000);
     setInterval(updateLiveSleepUI, 1000);
