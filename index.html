@@ -40,7 +40,7 @@
       <span id="bannerBadge" class="text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-300">Active</span>
     </div>
 
-    <!-- Daily Caloric Balance Gauge (Eaten vs Burned) -->
+    <!-- Daily Caloric Balance Gauge -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400">Daily Calorie Balance</h2>
@@ -100,7 +100,7 @@
         </p>
       </div>
 
-      <!-- Craving Check Tool (Fasting Deflector) -->
+      <!-- Craving Check Tool -->
       <div class="mt-3 w-full">
         <button onclick="toggleCravingTool()" class="w-full bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 text-amber-300 text-xs py-2 px-3 rounded-lg font-semibold flex justify-between items-center">
           <span>⚡ Experiencing Hunger? (Craving Deflector)</span>
@@ -123,7 +123,7 @@
 
     <!-- 1-Tap Daily Habit Trackers -->
     <div class="grid grid-cols-2 gap-3">
-      <!-- 6:00 AM Walk with Wife & Duration / Calorie Selector -->
+      <!-- 6:00 AM Walk with Wife -->
       <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-xl flex flex-col justify-between">
         <div class="flex justify-between items-start">
           <span class="text-2xl">🌅</span>
@@ -157,12 +157,12 @@
       </div>
     </div>
 
-    <!-- Smart Movement Generator (Rotated + Calorie Burn at 130kg) -->
+    <!-- Movement Generator (Including Arm Twister Exercises) -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-sm font-bold text-white">Joint-Friendly Desk Break</h2>
-          <span id="exerciseCategoryBadge" class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Zone: Lower Body</span>
+          <h2 class="text-sm font-bold text-white">Desk Break & Arm Twister</h2>
+          <span id="exerciseCategoryBadge" class="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Zone: Upper Body</span>
         </div>
         <button onclick="cycleExercise()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">
           🔄 Next
@@ -173,10 +173,10 @@
         <div class="flex items-center justify-between">
           <div>
             <div class="flex items-center space-x-2">
-              <p id="exerciseName" class="text-sm font-bold text-amber-300">10 Chair Box Squats</p>
-              <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~6 kcal</span>
+              <p id="exerciseName" class="text-sm font-bold text-amber-300">12 Twister Chest Squeezes</p>
+              <span id="exerciseBurnBadge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold border border-emerald-800">~8 kcal</span>
             </div>
-            <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5">Sit fully in office chair, pause 1s, stand tall without hands.</p>
+            <p id="exerciseDesc" class="text-xs text-slate-400 mt-0.5">Hold handles at chest height, compress bars inward, hold 2s. Zero knee pressure.</p>
           </div>
           <button onclick="completeCurrentExercise()" class="ml-3 shrink-0 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-3 py-2 rounded-lg">
             ✓ Done
@@ -269,9 +269,12 @@
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
     const BASE_SEDENTARY_TDEE = 2650; // 130kg, 36M baseline desk burn
 
+    // Full Rotation Pool including Twister Arm Equipment
     const exercisePool = [
+      { category: "Equipment / Chest", name: "12 Twister Chest Squeezes", desc: "Hold handles at chest height, slowly compress inward, hold 2s. Seated chest builder.", reps: 12, unit: "Twister Squeezes", kcal: 8 },
+      { category: "Equipment / Arms", name: "15 Twister Forearm & Arm Flexes", desc: "Hold twister low or vertically, squeeze to work biceps and forearms. Zero spinal pressure.", reps: 15, unit: "Twister Flexes", kcal: 6 },
       { category: "Lower Body", name: "10 Chair Box Squats", desc: "Sit fully in office chair, pause 1s, stand tall without hands.", reps: 10, unit: "Squats", kcal: 6 },
-      { category: "Upper Body", name: "12 Desk Push-ups", desc: "Palms on desk edge at an angle. Presses chest without 130kg wrist strain.", reps: 12, unit: "Push-ups", kcal: 4 },
+      { category: "Upper Body", name: "12 Desk Push-ups", desc: "Palms on desk edge at an angle. Presses chest without 130kg wrist strain on floor.", reps: 12, unit: "Push-ups", kcal: 4 },
       { category: "Posture & Core", name: "20 Seated Knee Raises", desc: "Sit tall, pull alternating knees to chest. Strengthens hip flexors with zero spinal compression.", reps: 20, unit: "Knee Raises", kcal: 5 },
       { category: "Slump Buster", name: "15 Standing Calf Raises", desc: "Hands on chair back, lift heels high. Pumps blood upward from desk sitting.", reps: 15, unit: "Calf Raises", kcal: 4 },
       { category: "Upper Body", name: "15 Seated Torso Twists & Chest Openers", desc: "Reach arms wide, rotate slowly. Relieves hunched screen posture.", reps: 15, unit: "Twists", kcal: 4 }
@@ -318,17 +321,17 @@
     // 2. Schedule Detection: Work Days vs. Weekend Rest Days
     // ----------------------------------------------------
     function isRestDay(now) {
-      const day = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+      const day = now.getDay();
       const hours = now.getHours();
 
-      // Saturday starting 6:00 AM (after Friday shift ends)
+      // Saturday 6:00 AM onwards
       if (day === 6 && hours >= 6) return true;
       // All day Sunday
       if (day === 0) return true;
-      // Monday before 8:00 PM (20:00) kickoff
+      // Monday before 8:00 PM kickoff
       if (day === 1 && hours < 20) return true;
 
-      return false; // Work cycle
+      return false;
     }
 
     // ----------------------------------------------------
@@ -350,7 +353,6 @@
       const stageDesc = document.getElementById('stageDescription');
       const stageHours = document.getElementById('stageHoursDone');
 
-      // Update Banner (Work vs. Rest Day Mode)
       const banner = document.getElementById('statusBanner');
       const bannerTitle = document.getElementById('bannerTitle');
       const bannerSub = document.getElementById('bannerSubtitle');
@@ -361,7 +363,6 @@
       const resting = isRestDay(now);
 
       if (resting) {
-        // REST DAY / WEEKEND MODE
         banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-emerald-950/40 border-emerald-800/60";
         bannerTitle.textContent = "🌴 Weekend Rest & Recovery";
         bannerSub.textContent = "Work shift off. Focus on family time, 6:00 AM walks, and fasting maintenance.";
@@ -371,20 +372,19 @@
         wrapTitle.textContent = "🌴 Rest Day Summary";
         wrapSub.textContent = "Review today's health wins";
       } else {
-        // WORK DAY MODE (Mon 8PM to Sat 6AM)
         wrapTitle.textContent = "🌙 Shift Night Cap";
         wrapSub.textContent = "Review before sleeping at 7:00 AM";
 
         if (hours >= 20 && hours < 24) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-indigo-950/60 border-indigo-700/60";
           bannerTitle.textContent = "🇨🇦 8:00 PM: Canadian Shift Kickoff";
-          bannerSub.textContent = "Shift started. Log your first posture break before diving into work.";
+          bannerSub.textContent = "Shift started. Do a quick twister squeeze or desk break before diving into work.";
           bannerBadge.textContent = "Work Active";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-indigo-800 text-indigo-200";
         } else if (hours >= 2 && hours < 5) {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-amber-950/60 border-amber-700/60";
           bannerTitle.textContent = "⚡ 3:00 AM Graveyard Slump Reset";
-          bannerSub.textContent = "Alertness window. Do calf raises or desk stretches instead of snacking.";
+          bannerSub.textContent = "Alertness slump. 10 twister squeezes wake up blood flow without late snacking.";
           bannerBadge.textContent = "Slump Window";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-amber-800 text-amber-200";
         } else if (hours >= 6 && hours < 7) {
@@ -402,7 +402,6 @@
         }
       }
 
-      // Fasting Progress Circle
       if (currentTotalSeconds < FAST_END_SECONDS) {
         stateLabel.textContent = "FASTING";
         stateLabel.className = "text-xs uppercase tracking-widest text-amber-400 font-bold mb-1";
@@ -546,8 +545,9 @@
     }
 
     function flagJointIssue() {
-      alert("Prioritizing seated exercises and upper-body posture resets to protect your knees.");
-      currentPoolIndex = 2; // Seated knee raises
+      alert("Prioritizing seated twister exercises and seated knee raises to keep your knees completely safe.");
+      // Skip squats and set to Twister Chest Squeeze
+      currentPoolIndex = 0;
       updateExerciseCard();
     }
 
@@ -621,7 +621,6 @@
     // 6. Caloric Balance & UI Render
     // ----------------------------------------------------
     function renderState() {
-      // 1. Calories Calculations
       let totalEaten = 0;
       (appData.meals || []).forEach(m => {
         totalEaten += (m.kcal || 0);
@@ -658,7 +657,6 @@
         netLabel.className = "text-[9px] text-rose-500 font-semibold";
       }
 
-      // 2. Walk status
       const walkBadge = document.getElementById('walkStatusBadge');
       const walkSub = document.getElementById('walkSubtitle');
       if (appData.walkDone) {
@@ -671,10 +669,8 @@
         walkSub.textContent = "Stroll with wife (6:00 AM)";
       }
 
-      // 3. Hydration
       document.getElementById('waterCount').textContent = (appData.water || 0) + " ml";
 
-      // 4. Output Summary & Exercise Feed
       const totalSummary = Object.keys(totals).map(u => `${totals[u]} ${u}`).join(' • ');
       document.getElementById('cumulativeOutput').textContent = totalSummary
         ? `${totalSummary} • Total: +${exerciseBurn} kcal burned`
@@ -698,7 +694,6 @@
         `).join('');
       }
 
-      // 5. Meals List
       const mealList = document.getElementById('mealList');
       if (!appData.meals || !appData.meals.length) {
         mealList.innerHTML = '<p class="text-slate-500 text-center py-2 text-[11px]">No meals logged yet today.</p>';
@@ -717,7 +712,6 @@
         `).join('');
       }
 
-      // 6. Day Wrap Box
       const box = document.getElementById('shiftSummaryBox');
       const btn = document.getElementById('wrapBtn');
       if (appData.shiftWrapped) {
