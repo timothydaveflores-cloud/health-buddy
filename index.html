@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Health Buddy • Fasting & Movement</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase Compatibility Libraries -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     .progress-ring__circle {
       transition: stroke-dashoffset 0.5s ease-in-out;
@@ -22,9 +25,11 @@
         <h1 class="text-xl font-bold tracking-tight text-white">Health Buddy</h1>
         <p class="text-xs text-slate-400">Night-Shift Fasting & Joint-Safe Movement</p>
       </div>
-      <button onclick="requestNotificationAccess()" id="notifBtn" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">
-        🔔 Enable Alerts
-      </button>
+      <div class="flex items-center space-x-2">
+        <span id="syncIndicator" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-amber-950 text-amber-300 border border-amber-800">
+          Connecting...
+        </span>
+      </div>
     </header>
 
     <!-- Shift Clock Indicator -->
@@ -42,13 +47,10 @@
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative shadow-lg">
       <div class="relative w-64 h-64 flex items-center justify-center">
         <svg class="w-full h-full" viewBox="0 0 240 240">
-          <!-- Background track -->
           <circle cx="120" cy="120" r="100" stroke="#1e293b" stroke-width="14" fill="transparent" />
-          <!-- Progress stroke -->
           <circle id="progressCircle" class="progress-ring__circle" cx="120" cy="120" r="100" stroke="#f59e0b" stroke-width="14" stroke-linecap="round" fill="transparent" stroke-dasharray="628.3" stroke-dashoffset="628.3" />
         </svg>
 
-        <!-- Center Text Overlay -->
         <div class="absolute flex flex-col items-center text-center px-4">
           <span id="fastingStateLabel" class="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">FASTING</span>
           <span id="timerCountdown" class="text-3xl font-black text-white font-mono">00:00:00</span>
@@ -74,7 +76,7 @@
     <!-- 1-Tap Daily Habit Trackers -->
     <div class="grid grid-cols-2 gap-3">
       <!-- 6:00 AM Walk with Wife -->
-      <button onclick="logMorningWalk()" id="walkCard" class="bg-slate-900 hover:bg-slate-800/80 border border-slate-800 p-4 rounded-xl text-left flex flex-col justify-between transition group">
+      <button onclick="logMorningWalk()" id="walkCard" class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-left flex flex-col justify-between transition group">
         <div class="flex justify-between items-start">
           <span class="text-2xl">🌅</span>
           <span id="walkStatusIcon" class="text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400">Pending</span>
@@ -98,7 +100,7 @@
       </div>
     </div>
 
-    <!-- Joint-Safe Quick Movement Break Generator -->
+    <!-- Joint-Safe Movement Break -->
     <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-3">
       <div class="flex justify-between items-center">
         <div>
@@ -132,18 +134,33 @@
         </button>
       </div>
 
-      <!-- Logged Meals -->
       <div id="mealList" class="divide-y divide-slate-800 max-h-40 overflow-y-auto text-xs pt-1">
-        <p class="text-slate-500 text-center py-2">No meals logged yet today.</p>
+        <p class="text-slate-500 text-center py-2">Loading cloud meals...</p>
       </div>
     </div>
 
   </div>
 
   <script>
-    const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100; // 628.318
+    // ----------------------------------------------------
+    // Firebase Setup & Real-time Cloud Sync
+    // ----------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyBM2y_QgQ_g5emihqT26zG17ElAJrSKBFc",
+      authDomain: "family-budget-5daae.firebaseapp.com",
+      projectId: "family-budget-5daae",
+      storageBucket: "family-budget-5daae.firebasestorage.app",
+      messagingSenderId: "854232585675",
+      appId: "1:854232585675:web:3562b1ec65053e3543524e",
+      measurementId: "G-B5XJ3LRPMG"
+    };
 
-    // Joint-friendly exercise database
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
+    const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 100;
+
     const safeExercises = [
       { name: "10 Chair Box Squats", desc: "Sit down fully in your chair, pause 1 sec, stand up tall. Strengthens legs with zero knee strain." },
       { name: "12 Wall / Desk Push-ups", desc: "Place palms flat on desk at an angle. Presses chest without 130kg floor strain on wrists." },
@@ -153,33 +170,48 @@
     ];
 
     let currentExerciseIndex = 0;
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const todayDocRef = db.collection("health_daily").doc(todayKey);
 
-    // Local state
-    let todayKey = new Date().toISOString().slice(0, 10);
-    let appData = JSON.parse(localStorage.getItem('health_buddy_' + todayKey) || JSON.stringify({
+    let appData = {
       water: 0,
       walkDone: false,
       exercisesCompleted: 0,
       meals: []
-    }));
+    };
 
-    function saveState() {
-      localStorage.setItem('health_buddy_' + todayKey, JSON.stringify(appData));
+    // Listen to real-time changes across phone & PC
+    todayDocRef.onSnapshot((doc) => {
+      const indicator = document.getElementById('syncIndicator');
+      indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-emerald-950 text-emerald-300 border border-emerald-800';
+      indicator.textContent = '● Live Synced';
+
+      if (doc.exists) {
+        appData = doc.data();
+      } else {
+        todayDocRef.set(appData);
+      }
       renderState();
+    }, (error) => {
+      console.error(error);
+      const indicator = document.getElementById('syncIndicator');
+      indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-rose-950 text-rose-300 border border-rose-800';
+      indicator.textContent = 'Sync Offline';
+    });
+
+    async function pushUpdate() {
+      await todayDocRef.set(appData, { merge: true });
     }
 
-    // ------------------------------------------------
-    // Fasting & Metabolic Calculation (Ph Time Target)
-    // ------------------------------------------------
+    // ----------------------------------------------------
+    // Fasting Engine
+    // ----------------------------------------------------
     function updateFastingCycle() {
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
       const seconds = now.getSeconds();
-
       const currentTotalSeconds = (hours * 3600) + (minutes * 60) + seconds;
-
-      // 12:00 Midnight to 3:00 PM (15 hours = 54,000 seconds)
       const FAST_END_SECONDS = 15 * 3600; // 3:00 PM
 
       const circle = document.getElementById('progressCircle');
@@ -191,9 +223,8 @@
       const stageHours = document.getElementById('stageHoursDone');
       const shiftPhase = document.getElementById('shiftPhaseBadge');
 
-      // Check Shift Phase
       if (hours >= 7 && (hours < 14 || (hours === 14 && minutes < 30))) {
-        shiftPhase.textContent = '🌙 Sleep / Blackout Phase';
+        shiftPhase.textContent = '🌙 Sleep Phase';
         shiftPhase.className = 'px-2 py-0.5 rounded font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800';
       } else if (hours >= 15 && hours < 24) {
         shiftPhase.textContent = '🍽️ Eating Window Active';
@@ -204,7 +235,6 @@
       }
 
       if (currentTotalSeconds < FAST_END_SECONDS) {
-        // FASTING PHASE (12:00 AM to 3:00 PM)
         stateLabel.textContent = "FASTING";
         stateLabel.className = "text-xs uppercase tracking-widest text-amber-400 font-bold mb-1";
         circle.setAttribute("stroke", "#f59e0b");
@@ -221,33 +251,30 @@
         const offset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
         circle.style.strokeDashoffset = offset;
 
-        // Stages breakdown
         if (elapsedSeconds < 4 * 3600) {
           stageBadge.textContent = "Digestion & Glucose Drop";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
-          stageDesc.textContent = "Your body is processing your late-night food. Insulin is tapering down to baseline levels.";
+          stageDesc.textContent = "Your body is clearing late-night food. Insulin is returning to baseline.";
         } else if (elapsedSeconds < 8 * 3600) {
           stageBadge.textContent = "Glycogen Depletion";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
-          stageDesc.textContent = "Stored carbohydrate stores in the liver are emptying. Body begins switching over to fatty acids.";
+          stageDesc.textContent = "Liver carbohydrate stores are emptying. Body transitions toward fatty acids.";
         } else if (elapsedSeconds < 12 * 3600) {
           stageBadge.textContent = "Active Fat Oxidation";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
-          stageDesc.textContent = "Insulin is completely suppressed. Fat cells are directly releasing stored lipids for resting energy.";
+          stageDesc.textContent = "Insulin suppressed. Fat stores are actively broken down for resting energy.";
         } else {
           stageBadge.textContent = "Peak Fat Burn & Autophagy";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-          stageDesc.textContent = "Maximum fat breakdown window before breaking fast. Early cellular repair (autophagy) underway.";
+          stageDesc.textContent = "Maximum fat breakdown window before breaking fast. Early cellular repair underway.";
         }
-
       } else {
-        // EATING WINDOW (3:00 PM to 12:00 Midnight = 9 hours = 32,400 seconds)
         stateLabel.textContent = "EATING WINDOW";
         stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
         circle.setAttribute("stroke", "#10b981");
 
         const secondsInEatingWindow = currentTotalSeconds - FAST_END_SECONDS;
-        const totalEatingWindow = (24 * 3600) - FAST_END_SECONDS; // 32,400s
+        const totalEatingWindow = (24 * 3600) - FAST_END_SECONDS;
         const remainingToMidnight = (24 * 3600) - currentTotalSeconds;
 
         timerCountdown.textContent = formatTime(remainingToMidnight);
@@ -260,7 +287,7 @@
         stageBadge.textContent = "Feeding & Recovery";
         stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
         stageHours.textContent = `${(secondsInEatingWindow / 3600).toFixed(1)} hrs in window`;
-        stageDesc.textContent = "Prioritize protein (eggs, chicken, fish) and hydration during your work shift before midnight.";
+        stageDesc.textContent = "Prioritize protein and water during your Canadian shift before midnight.";
       }
     }
 
@@ -271,18 +298,17 @@
       return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     }
 
-    // ------------------------------------------------
-    // Habits: Walk, Water, Exercise
-    // ------------------------------------------------
+    // ----------------------------------------------------
+    // User Actions
+    // ----------------------------------------------------
     function logMorningWalk() {
       appData.walkDone = !appData.walkDone;
-      saveState();
-      playChime();
+      pushUpdate();
     }
 
     function addWater(amount) {
-      appData.water += amount;
-      saveState();
+      appData.water = (appData.water || 0) + amount;
+      pushUpdate();
     }
 
     function generateRandomExercise() {
@@ -292,21 +318,16 @@
     }
 
     function completeExercise() {
-      appData.exercisesCompleted += 1;
-      saveState();
-      playChime();
+      appData.exercisesCompleted = (appData.exercisesCompleted || 0) + 1;
+      pushUpdate();
       generateRandomExercise();
     }
 
-    // ------------------------------------------------
-    // Smart Meal Range Estimation
-    // ------------------------------------------------
     function logMeal() {
       const input = document.getElementById('mealInput');
       const desc = input.value.trim();
       if (!desc) return;
 
-      // Realistic estimation heuristics
       let estimatedMin = 350;
       let estimatedMax = 500;
       let protein = 20;
@@ -321,6 +342,7 @@
         estimatedMin += 200; estimatedMax += 300;
       }
 
+      if (!appData.meals) appData.meals = [];
       appData.meals.unshift({
         desc,
         range: `${estimatedMin}–${estimatedMax} kcal`,
@@ -329,51 +351,15 @@
       });
 
       input.value = '';
-      saveState();
+      pushUpdate();
     }
 
     function deleteMeal(idx) {
       appData.meals.splice(idx, 1);
-      saveState();
-    }
-
-    // ------------------------------------------------
-    // Audio Chime & Browser Notification
-    // ------------------------------------------------
-    function playChime() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
-        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + 0.2);
-      } catch(e) {}
-    }
-
-    function requestNotificationAccess() {
-      if (!("Notification" in window)) {
-        alert("Notifications are not supported on this browser.");
-        return;
-      }
-      Notification.requestPermission().then(permission => {
-        const btn = document.getElementById('notifBtn');
-        if (permission === "granted") {
-          btn.textContent = "🔔 Alerts Enabled";
-          btn.className = "text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-3 py-1.5 rounded-lg";
-          new Notification("Health Buddy Ready", { body: "Your shift reminders are active!" });
-        }
-      });
+      pushUpdate();
     }
 
     function renderState() {
-      // Walk Card
       const walkIcon = document.getElementById('walkStatusIcon');
       const walkCard = document.getElementById('walkCard');
       if (appData.walkDone) {
@@ -386,15 +372,11 @@
         walkCard.className = "bg-slate-900 border border-slate-800 p-4 rounded-xl text-left flex flex-col justify-between";
       }
 
-      // Water
-      document.getElementById('waterCount').textContent = appData.water + " ml";
+      document.getElementById('waterCount').textContent = (appData.water || 0) + " ml";
+      document.getElementById('dailyExerciseStats').textContent = `${appData.exercisesCompleted || 0} movement break${appData.exercisesCompleted === 1 ? '' : 's'} logged today`;
 
-      // Exercise Count
-      document.getElementById('dailyExerciseStats').textContent = `${appData.exercisesCompleted} movement break${appData.exercisesCompleted === 1 ? '' : 's'} logged today`;
-
-      // Meals
       const mealList = document.getElementById('mealList');
-      if (!appData.meals.length) {
+      if (!appData.meals || !appData.meals.length) {
         mealList.innerHTML = '<p class="text-slate-500 text-center py-2">No meals logged yet today.</p>';
       } else {
         mealList.innerHTML = appData.meals.map((m, idx) => `
@@ -412,10 +394,8 @@
       }
     }
 
-    // Interval Timer Loop (Updates every second)
     setInterval(updateFastingCycle, 1000);
     updateFastingCycle();
-    renderState();
   </script>
 </body>
 </html>
