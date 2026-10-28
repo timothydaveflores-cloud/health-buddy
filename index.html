@@ -53,7 +53,7 @@
     <header class="flex justify-between items-center border-b border-slate-800 pb-3">
       <div>
         <h1 class="text-xl font-bold tracking-tight text-white">Health Buddy</h1>
-        <p class="text-xs text-slate-400">Shift Fasting • Calorie Balance • Voice Alarms</p>
+        <p class="text-xs text-slate-400">Shift Fasting • Calorie Balance • Local Persistence</p>
       </div>
       <div class="flex items-center space-x-2">
         <button onclick="requestNotificationAccess()" id="notifBtn" class="text-[10px] bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 px-2 py-1 rounded">
@@ -118,7 +118,6 @@
         </div>
       </div>
 
-      <!-- Clean SVG Trend Chart -->
       <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-1">
         <div class="flex justify-between items-center text-[10px] text-slate-400 mb-1">
           <span>Weekly Progress Chart</span>
@@ -130,28 +129,29 @@
       </div>
     </div>
 
-    <!-- Dynamic Rolling Fasting Engine & Prominent Next Meal Target -->
+    <!-- DUAL-MODE FASTING & EATING WINDOW ENGINE -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex flex-col items-center justify-center relative shadow-lg space-y-4">
-      <!-- Target Goal Selector -->
+      
+      <!-- Target Fast/Eat Ratio Selector -->
       <div class="w-full flex items-center justify-between border-b border-slate-800/80 pb-3">
         <div>
-          <span class="text-xs font-bold text-white uppercase tracking-wider">Fasting Target</span>
-          <p id="fastingStageGoalText" class="text-[10px] text-slate-400">Road to One Meal A Day (OMAD)</p>
+          <span class="text-xs font-bold text-white uppercase tracking-wider">Protocol</span>
+          <p id="fastingStageGoalText" class="text-[10px] text-slate-400">16h Fast • 8h Eat</p>
         </div>
-        <select id="fastingTargetSelect" onchange="changeFastingTarget()" class="bg-slate-950 border border-slate-700 text-amber-300 font-bold text-xs rounded-lg px-2.5 py-1.5 outline-none">
-          <option value="15">15 Hours (15:9 Base)</option>
-          <option value="16">16 Hours (16:8 Classic)</option>
-          <option value="18">18 Hours (18:6 Shift Clean)</option>
-          <option value="20">20 Hours (Warrior Mode)</option>
-          <option value="23">23 Hours (Full OMAD)</option>
+        <select id="fastingTargetSelect" onchange="changeFastingRatio()" class="bg-slate-950 border border-slate-700 text-amber-300 font-bold text-xs rounded-lg px-2.5 py-1.5 outline-none">
+          <option value="16">16:8 (16h Fast / 8h Eat)</option>
+          <option value="15">15:9 (15h Fast / 9h Eat)</option>
+          <option value="18">18:6 (18h Fast / 6h Eat)</option>
+          <option value="20">20:4 (20h Fast / 4h Eat)</option>
+          <option value="23">23:1 (OMAD - 23h Fast / 1h Eat)</option>
         </select>
       </div>
 
-      <!-- PROMINENT NEXT MEAL TIME CARD -->
+      <!-- TARGET TIME CARD -->
       <div id="targetMealTimeBox" class="w-full bg-slate-950 p-3 rounded-xl border border-amber-500/40 text-center transition-all shadow-inner">
         <p id="targetMealHeader" class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Next Meal Window Opens</p>
         <p id="targetEatTimeDisplay" class="text-2xl font-black text-amber-300 font-mono tracking-tight my-0.5">--:-- --</p>
-        <p id="targetEatDaySub" class="text-[11px] text-emerald-400 font-medium">Fast Target: 15 Hours</p>
+        <p id="targetEatDaySub" class="text-[11px] text-emerald-400 font-medium">Calculating schedule...</p>
       </div>
 
       <!-- Circular Progress Ring Display -->
@@ -171,17 +171,22 @@
         </div>
       </div>
 
-      <!-- Dynamic Kitchen Lock Controls -->
+      <!-- Two-Mode Action Switcher Buttons -->
       <div class="w-full space-y-2 pt-1">
-        <div class="flex gap-2">
-          <button onclick="startFastNow()" id="fastToggleBtn" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-2.5 rounded-lg transition shadow">
-            🔒 Lock Kitchen / Start Fast
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="switchToEatingWindow()" id="btnStartEating" class="w-full bg-slate-800 hover:bg-emerald-700 text-slate-300 hover:text-white font-bold text-xs py-2.5 rounded-lg border border-slate-700 transition">
+            🍽️ Start Eating Window
           </button>
-          <button onclick="resetFastTimePrompt()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs px-3 py-2.5 rounded-lg border border-slate-700">
-            ⚙️ Edit Time
+          <button onclick="switchToFastingWindow()" id="btnStartFasting" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-2.5 rounded-lg transition shadow">
+            🔒 Start Fasting Window
           </button>
         </div>
-        <p id="fastAnchorStatusText" class="text-[10px] text-slate-500 text-center italic">Fast started at --:--</p>
+        <div class="flex items-center justify-between text-[11px] pt-1 px-1">
+          <span id="fastAnchorStatusText" class="text-slate-500 italic">Mode active since --:--</span>
+          <button onclick="adjustSessionTimePrompt()" class="text-indigo-400 hover:text-indigo-300 font-semibold">
+            ⚙️ Adjust Time
+          </button>
+        </div>
       </div>
     </div>
 
@@ -213,9 +218,9 @@
       </div>
     </div>
 
-    <!-- 1-TAP TRACKERS: LIVE MORNING WALK & LIVE DAY SLEEP -->
+    <!-- 1-TAP TRACKERS: PERSISTENT MORNING WALK & BULLETPROOF DAY SLEEP -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      <!-- 1. Real-Time 6:00 AM Walk Tracker (Naic, Cavite Heat Adjusted) -->
+      <!-- 1. Real-Time 6:00 AM Walk Tracker -->
       <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3">
         <div class="flex justify-between items-start">
           <div class="flex items-center space-x-2">
@@ -246,7 +251,7 @@
         </div>
       </div>
 
-      <!-- 2. Real-Time Sleep Tracker -->
+      <!-- 2. Real-Time Sleep Tracker with Phone Lockout Persistence -->
       <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col justify-between space-y-3">
         <div class="flex justify-between items-start">
           <div class="flex items-center space-x-2">
@@ -446,8 +451,13 @@
 
   <script>
     // ----------------------------------------------------
-    // 1. Firebase Initialization & Live Sync
+    // 1. Timezone Pin (Asia/Manila) & Firebase Init
     // ----------------------------------------------------
+    function getManilaDateKey() {
+      // Returns YYYY-MM-DD in Philippine Standard Time regardless of UTC shifts
+      return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
+    }
+
     const firebaseConfig = {
       apiKey: "AIzaSyBM2y_QgQ_g5emihqT26zG17ElAJrSKBFc",
       authDomain: "family-budget-5daae.firebaseapp.com",
@@ -466,7 +476,7 @@
 
     let userWeight = 123.4;
     let weightHistory = [
-      { date: "Oct 26", weight: 123.4, note: "Initial Official Weigh-in (1:30 AM)" }
+      { date: "Oct 26", weight: 123.4, note: "Initial Official Weigh-in" }
     ];
 
     function calculateBMR(w) {
@@ -476,6 +486,16 @@
       return Math.round(calculateBMR(w) * 1.2);
     }
 
+    // Fasting Protocol Ratios (Fast hours vs Eat hours)
+    const fastingProtocols = {
+      16: { fast: 16, eat: 8, label: "16h Fast • 8h Eat" },
+      15: { fast: 15, eat: 9, label: "15h Fast • 9h Eat" },
+      18: { fast: 18, eat: 6, label: "18h Fast • 6h Eat" },
+      20: { fast: 20, eat: 4, label: "20h Fast • 4h Eat" },
+      23: { fast: 23, eat: 1, label: "23h Fast • 1h OMAD" }
+    };
+
+    // Bodyweight Exercises
     const exercisePool = [
       {
         category: "Upper Body & Core",
@@ -578,34 +598,67 @@
     ];
 
     let currentPoolIndex = 0;
-    const todayKey = new Date().toISOString().slice(0, 10);
-    const todayDocRef = db.collection("health_daily").doc(todayKey);
     const metaDocRef = db.collection("health_meta").doc("user_stats");
+    const activeDocRef = db.collection("health_meta").doc("active_sessions");
+
+    // Persistent Local Fallbacks (Immediate restoration on tab reload)
+    function loadLocalSession(key, defaultVal) {
+      try {
+        const stored = localStorage.getItem('hb_' + key);
+        return stored ? JSON.parse(stored) : defaultVal;
+      } catch(e) { return defaultVal; }
+    }
+    function saveLocalSession(key, val) {
+      try { localStorage.setItem('hb_' + key, JSON.stringify(val)); } catch(e) {}
+    }
+
+    // Persistent Active Sessions (Survives phone tab unloads)
+    let sessionData = loadLocalSession('active_sessions', {
+      sleep: { active: false, startTime: null, paused: false, pauseStartTime: null, pausedDurationMs: 0 },
+      walk: { active: false, startTime: null },
+      fast: { mode: 'fasting', startTime: Date.now() - (15 * 3600 * 1000), ratio: 16 }
+    });
 
     let appData = {
       water: 0,
       exerciseLogs: [],
       meals: [],
-      walkActive: false,
-      walkStartTime: null,
       walkDurationMinutes: 0,
       walkKcal: 0,
       walkCompleted: false,
-      sleepActive: false,
-      sleepStartTime: null,
-      sleepPaused: false,
-      sleepPauseStartTime: null,
-      sleepPausedDurationMs: 0,
       sleepDurationHours: 0,
       sleepCompleted: false,
-      fastActive: true,
-      fastStartTime: Date.now() - (7 * 3600 * 1000),
-      fastingGoalHours: 15,
       reminders: [
         { id: 1, label: "Pick up daughter at school", type: "weekday", time: "15:30", note: "Dismissal 4:00 PM (30 min early)", date: "", alertedToday: false }
       ]
     };
 
+    function getTodayDocRef() {
+      return db.collection("health_daily").doc(getManilaDateKey());
+    }
+
+    // Sync Active Sessions to Firestore
+    function pushActiveSessions() {
+      saveLocalSession('active_sessions', sessionData);
+      activeDocRef.set(sessionData, { merge: true }).catch(() => {});
+    }
+
+    activeDocRef.onSnapshot(doc => {
+      if (doc.exists) {
+        sessionData = Object.assign(sessionData, doc.data());
+        saveLocalSession('active_sessions', sessionData);
+        if (sessionData.fast && sessionData.fast.ratio) {
+          document.getElementById('fastingTargetSelect').value = String(sessionData.fast.ratio);
+        }
+      } else {
+        pushActiveSessions();
+      }
+      updateRollingFasting();
+      updateLiveSleepUI();
+      updateLiveWalkUI();
+    });
+
+    // Weight Hub Snapshot
     metaDocRef.onSnapshot(doc => {
       if (doc.exists) {
         const d = doc.data();
@@ -613,7 +666,7 @@
         if (d.history && Array.isArray(d.history) && d.history.length > 0) {
           weightHistory = d.history;
         } else {
-          weightHistory = [{ date: "Oct 26", weight: 123.4, note: "Initial Official Weigh-in (1:30 AM)" }];
+          weightHistory = [{ date: "Oct 26", weight: 123.4, note: "Initial Official Weigh-in" }];
           metaDocRef.set({ weight: 123.4, history: weightHistory }, { merge: true });
         }
       } else {
@@ -623,33 +676,34 @@
       renderState();
     });
 
-    todayDocRef.onSnapshot((doc) => {
-      const indicator = document.getElementById('syncIndicator');
-      indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-emerald-950 text-emerald-300 border border-emerald-800';
-      indicator.textContent = '● Live Synced';
+    // Daily Doc Snapshot (PST Date)
+    function attachDailyListener() {
+      getTodayDocRef().onSnapshot((doc) => {
+        const indicator = document.getElementById('syncIndicator');
+        indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-emerald-950 text-emerald-300 border border-emerald-800';
+        indicator.textContent = '● Live Synced';
 
-      if (doc.exists) {
-        appData = Object.assign(appData, doc.data());
-        if (appData.fastingGoalHours) {
-          document.getElementById('fastingTargetSelect').value = String(appData.fastingGoalHours);
+        if (doc.exists) {
+          appData = Object.assign(appData, doc.data());
+        } else {
+          getTodayDocRef().set(appData);
         }
-      } else {
-        todayDocRef.set(appData);
-      }
-      renderState();
-    }, (error) => {
-      console.error(error);
-      const indicator = document.getElementById('syncIndicator');
-      indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-rose-950 text-rose-300 border border-rose-800';
-      indicator.textContent = 'Offline';
-    });
+        renderState();
+      }, (error) => {
+        console.error(error);
+        const indicator = document.getElementById('syncIndicator');
+        indicator.className = 'inline-flex items-center px-2 py-1 rounded-full text-[10px] font-medium bg-rose-950 text-rose-300 border border-rose-800';
+        indicator.textContent = 'Offline';
+      });
+    }
+    attachDailyListener();
 
-    async function pushUpdate() {
-      await todayDocRef.set(appData, { merge: true });
+    async function pushDailyUpdate() {
+      await getTodayDocRef().set(appData, { merge: true });
     }
 
     // ----------------------------------------------------
-    // 2. Weight Hub, Milestones & Clean SVG Trend
+    // 2. Weight Hub, Milestones & SVG Trend
     // ----------------------------------------------------
     function renderWeightHub() {
       document.getElementById('currentWeightVal').textContent = `${userWeight} kg`;
@@ -667,6 +721,7 @@
       const totalLost = (startWeight - userWeight).toFixed(1);
       document.getElementById('totalWeightLostVal').textContent = `${totalLost > 0 ? '-' + totalLost : totalLost} kg`;
 
+      // Next weigh-in countdown: Sunday at 3:00 PM (Manila Time)
       const now = new Date();
       let targetSunday = new Date(now);
       const day = now.getDay();
@@ -774,33 +829,41 @@
     }
 
     // ----------------------------------------------------
-    // 3. Rolling Fasting & Prominent Meal Time Engine
+    // 3. Dual-Mode Fasting & Eating Window Engine
     // ----------------------------------------------------
-    function changeFastingTarget() {
+    function changeFastingRatio() {
       const select = document.getElementById('fastingTargetSelect');
-      appData.fastingGoalHours = parseInt(select.value, 10);
-      pushUpdate();
+      const ratioKey = parseInt(select.value, 10);
+      sessionData.fast.ratio = ratioKey;
+      pushActiveSessions();
       updateRollingFasting();
     }
 
-    function startFastNow() {
-      appData.fastActive = true;
-      appData.fastStartTime = Date.now();
-      pushUpdate();
+    function switchToEatingWindow() {
+      sessionData.fast.mode = 'eating';
+      sessionData.fast.startTime = Date.now();
+      pushActiveSessions();
       updateRollingFasting();
     }
 
-    function resetFastTimePrompt() {
-      const hoursAgo = prompt("How many hours ago did you finish eating? (e.g. 2 for 2 hours ago, 0 for right now):", "0");
-      if (hoursAgo === null) return;
-      const h = parseFloat(hoursAgo);
+    function switchToFastingWindow() {
+      sessionData.fast.mode = 'fasting';
+      sessionData.fast.startTime = Date.now();
+      pushActiveSessions();
+      updateRollingFasting();
+    }
+
+    function adjustSessionTimePrompt() {
+      const mode = sessionData.fast.mode === 'eating' ? 'eating window' : 'fasting window';
+      const input = prompt(`How many hours ago did your ${mode} start? (e.g. 2 for 2 hours ago, 0 for right now):`, "0");
+      if (input === null) return;
+      const h = parseFloat(input);
       if (isNaN(h) || h < 0 || h > 48) {
         alert("Enter a valid number of hours.");
         return;
       }
-      appData.fastActive = true;
-      appData.fastStartTime = Date.now() - (h * 3600 * 1000);
-      pushUpdate();
+      sessionData.fast.startTime = Date.now() - (h * 3600 * 1000);
+      pushActiveSessions();
       updateRollingFasting();
     }
 
@@ -810,54 +873,31 @@
       const stateLabel = document.getElementById('fastingStateLabel');
       const subTimerLabel = document.getElementById('subTimerLabel');
       const stageBadge = document.getElementById('stageBadge');
-      const fastBtn = document.getElementById('fastToggleBtn');
       const anchorText = document.getElementById('fastAnchorStatusText');
       const stageGoalText = document.getElementById('fastingStageGoalText');
 
-      // Prominent Meal Time Elements
       const mealTimeBox = document.getElementById('targetMealTimeBox');
       const targetEatTimeDisplay = document.getElementById('targetEatTimeDisplay');
       const targetEatDaySub = document.getElementById('targetEatDaySub');
       const targetMealHeader = document.getElementById('targetMealHeader');
 
-      const targetHours = appData.fastingGoalHours || 15;
+      const btnEating = document.getElementById('btnStartEating');
+      const btnFasting = document.getElementById('btnStartFasting');
 
-      if (targetHours === 23) stageGoalText.textContent = "Peak Stage: One Meal A Day (OMAD)";
-      else if (targetHours >= 18) stageGoalText.textContent = `Advanced Clean Fast: ${targetHours} Hours`;
-      else stageGoalText.textContent = `Baseline Shift Fast: ${targetHours} Hours`;
+      const ratioKey = sessionData.fast.ratio || 16;
+      const protocol = fastingProtocols[ratioKey] || fastingProtocols[16];
+      stageGoalText.textContent = protocol.label;
 
-      if (!appData.fastActive || !appData.fastStartTime) {
-        stateLabel.textContent = "EATING WINDOW";
-        stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
-        circle.setAttribute("stroke", "#10b981");
-        circle.style.strokeDashoffset = 0;
-        timerCountdown.textContent = "KITCHEN OPEN";
-        subTimerLabel.textContent = "Tap lock when done eating";
-        fastBtn.textContent = "🔒 Lock Kitchen / Start Fast";
-        fastBtn.className = "w-full bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs py-2.5 rounded-lg transition shadow";
-        stageBadge.textContent = "Refueling & Recovery";
-        stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-        anchorText.textContent = "Currently in your eating window.";
-
-        // Meal Time Card in Kitchen Open State
-        mealTimeBox.className = "w-full bg-slate-950 p-3 rounded-xl border border-emerald-500/40 text-center transition-all shadow-inner";
-        targetMealHeader.textContent = "Status";
-        targetEatTimeDisplay.textContent = "Kitchen Unlocked";
-        targetEatTimeDisplay.className = "text-xl font-black text-emerald-400 font-mono tracking-tight my-0.5";
-        targetEatDaySub.textContent = "Lock fast when you finish eating to set your next goal.";
-        return;
-      }
-
-      fastBtn.textContent = "🔓 Unlock Eating Window";
-      fastBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-lg border border-slate-700";
-
-      const elapsedMs = Math.max(0, Date.now() - appData.fastStartTime);
-      const elapsedSec = Math.floor(elapsedMs / 1000);
-      const elapsedHours = elapsedSec / 3600;
+      const isFasting = (sessionData.fast.mode === 'fasting');
+      const targetHours = isFasting ? protocol.fast : protocol.eat;
       const targetSec = targetHours * 3600;
 
-      // Calculate Target Unlock Date and Time
-      const unlockTimeMs = appData.fastStartTime + (targetSec * 1000);
+      const startTime = sessionData.fast.startTime || (Date.now() - (targetSec * 500));
+      const elapsedMs = Math.max(0, Date.now() - startTime);
+      const elapsedSec = Math.floor(elapsedMs / 1000);
+      const elapsedHours = elapsedSec / 3600;
+
+      const unlockTimeMs = startTime + (targetSec * 1000);
       const unlockDate = new Date(unlockTimeMs);
       const now = new Date();
 
@@ -873,71 +913,296 @@
         dayString = unlockDate.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
       }
 
-      const startDateObj = new Date(appData.fastStartTime);
-      anchorText.textContent = `Fast locked at ${startDateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${elapsedHours.toFixed(1)}h completed)`;
+      const startDateObj = new Date(startTime);
+      anchorText.textContent = `${isFasting ? 'Fast' : 'Eating window'} started at ${startDateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${elapsedHours.toFixed(1)}h elapsed)`;
 
-      if (elapsedSec < targetSec) {
-        stateLabel.textContent = "FASTING";
-        stateLabel.className = "text-xs uppercase tracking-widest text-amber-400 font-bold mb-1";
+      if (isFasting) {
+        // FASTING MODE
+        btnFasting.className = "w-full bg-amber-600 text-white font-bold text-xs py-2.5 rounded-lg shadow ring-2 ring-amber-400";
+        btnEating.className = "w-full bg-slate-800 hover:bg-emerald-700 text-slate-300 hover:text-white font-bold text-xs py-2.5 rounded-lg border border-slate-700 transition";
         circle.setAttribute("stroke", "#f59e0b");
 
-        const remainingSec = targetSec - elapsedSec;
-        const h = Math.floor(remainingSec / 3600);
-        const m = Math.floor((remainingSec % 3600) / 60);
-        const s = remainingSec % 60;
-        timerCountdown.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        subTimerLabel.textContent = `remaining to ${targetHours}-hr target`;
+        if (elapsedSec < targetSec) {
+          stateLabel.textContent = "FASTING WINDOW";
+          stateLabel.className = "text-xs uppercase tracking-widest text-amber-400 font-bold mb-1";
 
-        const pct = elapsedSec / targetSec;
-        circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
+          const remainingSec = targetSec - elapsedSec;
+          const h = Math.floor(remainingSec / 3600);
+          const m = Math.floor((remainingSec % 3600) / 60);
+          const s = remainingSec % 60;
+          timerCountdown.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+          subTimerLabel.textContent = `remaining of ${targetHours}h fast`;
 
-        if (elapsedHours < 4) {
-          stageBadge.textContent = "Digestion & Glucose Reset";
-          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30";
-        } else if (elapsedHours < 8) {
-          stageBadge.textContent = "Glycogen Depletion";
-          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
-        } else if (elapsedHours < 12) {
-          stageBadge.textContent = "Active Fat Oxidation";
+          const pct = elapsedSec / targetSec;
+          circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
+
+          if (elapsedHours < 4) stageBadge.textContent = "Digestion & Glucose Reset";
+          else if (elapsedHours < 8) stageBadge.textContent = "Glycogen Depletion";
+          else if (elapsedHours < 12) stageBadge.textContent = "Active Fat Oxidation";
+          else stageBadge.textContent = "Peak Ketosis & Deep Fat Burn";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
+
+          mealTimeBox.className = "w-full bg-slate-950 p-3 rounded-xl border border-amber-500/40 text-center transition-all shadow-inner";
+          targetMealHeader.textContent = "Your Next Meal Window Opens";
+          targetEatTimeDisplay.textContent = timeFormatted;
+          targetEatTimeDisplay.className = "text-2xl font-black text-amber-300 font-mono tracking-tight my-0.5";
+          targetEatDaySub.textContent = `${dayString} • ${protocol.fast}-Hour Fast Goal`;
         } else {
-          stageBadge.textContent = "Peak Ketosis & Deep Fat Burn";
+          // Fasting Target Reached (Bonus mode while sleeping / waiting to eat)
+          stateLabel.textContent = "TARGET REACHED! 🎉";
+          stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
+          circle.setAttribute("stroke", "#10b981");
+          circle.style.strokeDashoffset = 0;
+
+          const bonusSec = elapsedSec - targetSec;
+          const h = Math.floor(bonusSec / 3600);
+          const m = Math.floor((bonusSec % 3600) / 60);
+          const s = bonusSec % 60;
+          timerCountdown.textContent = `+${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+          subTimerLabel.textContent = `bonus time beyond ${targetHours}h`;
+          stageBadge.textContent = "Deep Autophagy & Peak Fat Burn";
           stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+
+          mealTimeBox.className = "w-full bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/50 text-center transition-all shadow-inner";
+          targetMealHeader.textContent = "Eating Window Unlocked";
+          targetEatTimeDisplay.textContent = "READY TO EAT";
+          targetEatTimeDisplay.className = "text-xl font-black text-emerald-300 font-mono tracking-tight my-0.5";
+          targetEatDaySub.textContent = `Unlocked at ${timeFormatted} (${dayString}) • Click Start Eating when ready!`;
         }
-
-        // Active Fast Target Meal Time Card
-        mealTimeBox.className = "w-full bg-slate-950 p-3 rounded-xl border border-amber-500/40 text-center transition-all shadow-inner";
-        targetMealHeader.textContent = "Your Next Meal Time";
-        targetEatTimeDisplay.textContent = timeFormatted;
-        targetEatTimeDisplay.className = "text-2xl font-black text-amber-300 font-mono tracking-tight my-0.5";
-        targetEatDaySub.textContent = `${dayString} (${targetHours}h fast target)`;
       } else {
-        // Target Reached State
-        stateLabel.textContent = "TARGET REACHED! 🎉";
-        stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
+        // EATING WINDOW MODE
+        btnEating.className = "w-full bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-lg shadow ring-2 ring-emerald-400";
+        btnFasting.className = "w-full bg-slate-800 hover:bg-amber-600 text-slate-300 hover:text-white font-bold text-xs py-2.5 rounded-lg border border-slate-700 transition";
         circle.setAttribute("stroke", "#10b981");
-        circle.style.strokeDashoffset = 0;
 
-        const bonusSec = elapsedSec - targetSec;
-        const h = Math.floor(bonusSec / 3600);
-        const m = Math.floor((bonusSec % 3600) / 60);
-        const s = bonusSec % 60;
-        timerCountdown.textContent = `+${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        subTimerLabel.textContent = `bonus time beyond ${targetHours}h`;
-        stageBadge.textContent = "Deep Autophagy & Peak Fat Burn";
-        stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+        if (elapsedSec < targetSec) {
+          stateLabel.textContent = "EATING WINDOW";
+          stateLabel.className = "text-xs uppercase tracking-widest text-emerald-400 font-bold mb-1";
 
-        // Completed Target Meal Time Card
-        mealTimeBox.className = "w-full bg-emerald-950/40 p-3 rounded-xl border border-emerald-500/50 text-center transition-all shadow-inner";
-        targetMealHeader.textContent = "Eating Window Active";
-        targetEatTimeDisplay.textContent = "YOU CAN EAT NOW";
-        targetEatTimeDisplay.className = "text-xl font-black text-emerald-300 font-mono tracking-tight my-0.5";
-        targetEatDaySub.textContent = `Unlocked at ${timeFormatted} (${dayString}) • Fast complete!`;
+          const remainingSec = targetSec - elapsedSec;
+          const h = Math.floor(remainingSec / 3600);
+          const m = Math.floor((remainingSec % 3600) / 60);
+          const s = remainingSec % 60;
+          timerCountdown.textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+          subTimerLabel.textContent = `remaining of ${targetHours}h eating window`;
+
+          const pct = elapsedSec / targetSec;
+          circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE - (pct * CIRCLE_CIRCUMFERENCE);
+
+          stageBadge.textContent = "Nutrition & Muscle Recovery";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+
+          mealTimeBox.className = "w-full bg-slate-950 p-3 rounded-xl border border-emerald-500/40 text-center transition-all shadow-inner";
+          targetMealHeader.textContent = "Kitchen Closes At";
+          targetEatTimeDisplay.textContent = timeFormatted;
+          targetEatTimeDisplay.className = "text-2xl font-black text-emerald-300 font-mono tracking-tight my-0.5";
+          targetEatDaySub.textContent = `${dayString} • Prioritize protein & hydration`;
+        } else {
+          // Eating Window Expired
+          stateLabel.textContent = "EATING WINDOW ENDED";
+          stateLabel.className = "text-xs uppercase tracking-widest text-rose-400 font-bold mb-1";
+          circle.setAttribute("stroke", "#f43f5e");
+          circle.style.strokeDashoffset = 0;
+
+          const overSec = elapsedSec - targetSec;
+          const h = Math.floor(overSec / 3600);
+          const m = Math.floor((overSec % 3600) / 60);
+          const s = overSec % 60;
+          timerCountdown.textContent = `+${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+          subTimerLabel.textContent = `past planned kitchen close`;
+
+          stageBadge.textContent = "Time to Lock Kitchen";
+          stageBadge.className = "mt-2 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30";
+
+          mealTimeBox.className = "w-full bg-rose-950/40 p-3 rounded-xl border border-rose-500/50 text-center transition-all shadow-inner";
+          targetMealHeader.textContent = "Kitchen Closed";
+          targetEatTimeDisplay.textContent = "TIME TO FAST";
+          targetEatTimeDisplay.className = "text-xl font-black text-rose-300 font-mono tracking-tight my-0.5";
+          targetEatDaySub.textContent = `Closed at ${timeFormatted} • Click Start Fasting Window to lock!`;
+        }
       }
     }
 
     // ----------------------------------------------------
-    // 4. Visual Bodyweight Movement Engine
+    // 4. Bulletproof Sleep Timer & Walk Sessions
+    // ----------------------------------------------------
+    function toggleSleepSession() {
+      const slp = sessionData.sleep;
+      if (!slp.active) {
+        // Bedtime
+        slp.active = true;
+        slp.startTime = Date.now();
+        slp.paused = false;
+        slp.pauseStartTime = null;
+        slp.pausedDurationMs = 0;
+        appData.sleepCompleted = false;
+        pushActiveSessions();
+      } else {
+        // Wake up
+        let totalMs = Date.now() - slp.startTime;
+        if (slp.paused && slp.pauseStartTime) {
+          slp.pausedDurationMs += (Date.now() - slp.pauseStartTime);
+        }
+        totalMs -= (slp.pausedDurationMs || 0);
+        const hours = (Math.max(0, totalMs) / (1000 * 3600)).toFixed(1);
+
+        slp.active = false;
+        slp.paused = false;
+        slp.startTime = null;
+        pushActiveSessions();
+
+        appData.sleepDurationHours = parseFloat(hours);
+        appData.sleepCompleted = true;
+        pushDailyUpdate();
+      }
+      updateLiveSleepUI();
+    }
+
+    function togglePeeBreak() {
+      const slp = sessionData.sleep;
+      if (!slp.active) return;
+
+      if (!slp.paused) {
+        slp.paused = true;
+        slp.pauseStartTime = Date.now();
+      } else {
+        slp.paused = false;
+        if (slp.pauseStartTime) {
+          slp.pausedDurationMs = (slp.pausedDurationMs || 0) + (Date.now() - slp.pauseStartTime);
+          slp.pauseStartTime = null;
+        }
+      }
+      pushActiveSessions();
+      updateLiveSleepUI();
+    }
+
+    function updateLiveSleepUI() {
+      const activeBox = document.getElementById('sleepActiveBox');
+      const completedBox = document.getElementById('sleepCompletedBox');
+      const startBtn = document.getElementById('sleepStartBtn');
+      const peeBtn = document.getElementById('peeBreakBtn');
+      const badge = document.getElementById('sleepStatusBadge');
+
+      const slp = sessionData.sleep;
+
+      if (slp && slp.active && slp.startTime) {
+        activeBox.classList.remove('hidden');
+        completedBox.classList.add('hidden');
+        peeBtn.classList.remove('hidden');
+
+        if (slp.paused) {
+          badge.textContent = "Paused (Pee break)";
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800";
+          peeBtn.textContent = "▶️ Back to Bed (Resume Sleep)";
+          peeBtn.className = "w-full bg-amber-800 hover:bg-amber-700 text-white font-bold text-[10px] py-1.5 rounded-lg";
+        } else {
+          badge.textContent = "Sleeping 🌙";
+          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 animate-pulse";
+          peeBtn.textContent = "🚽 Pause for Bathroom Break";
+          peeBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1.5 rounded-lg border border-slate-700";
+        }
+
+        startBtn.textContent = "☀️ I'm Awake (Stop Timer)";
+        startBtn.className = "w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+
+        let currentActiveMs = Date.now() - slp.startTime - (slp.pausedDurationMs || 0);
+        if (slp.paused && slp.pauseStartTime) {
+          currentActiveMs -= (Date.now() - slp.pauseStartTime);
+        }
+        currentActiveMs = Math.max(0, currentActiveMs);
+
+        const totalMinutes = Math.floor(currentActiveMs / 60000);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        document.getElementById('liveSleepTimer').textContent = `${h}h ${String(m).padStart(2,'0')}m`;
+        const startTimeStr = new Date(slp.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('sleepStartedAt').textContent = `In bed since ${startTimeStr}`;
+      } else if (appData.sleepCompleted) {
+        activeBox.classList.add('hidden');
+        completedBox.classList.remove('hidden');
+        peeBtn.classList.add('hidden');
+        badge.textContent = `✓ ${appData.sleepDurationHours}h Slept`;
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800";
+        startBtn.textContent = "🛏️ Start New Sleep";
+        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
+        document.getElementById('sleepSummaryText').textContent = `Rest Logged: ${appData.sleepDurationHours} hours of sleep`;
+      } else {
+        activeBox.classList.add('hidden');
+        completedBox.classList.add('hidden');
+        peeBtn.classList.add('hidden');
+        badge.textContent = "Ready";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        startBtn.textContent = "🛏️ Going to Sleep";
+        startBtn.className = "w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+      }
+    }
+
+    function toggleWalkSession() {
+      const wlk = sessionData.walk;
+      if (!wlk.active) {
+        wlk.active = true;
+        wlk.startTime = Date.now();
+        appData.walkCompleted = false;
+        pushActiveSessions();
+      } else {
+        const elapsedMs = Date.now() - wlk.startTime;
+        const minutes = Math.max(1, Math.round(elapsedMs / 60000));
+        const burned = Math.round(minutes * (userWeight * 0.057));
+
+        wlk.active = false;
+        wlk.startTime = null;
+        pushActiveSessions();
+
+        appData.walkDurationMinutes = minutes;
+        appData.walkKcal = burned;
+        appData.walkCompleted = true;
+        pushDailyUpdate();
+      }
+      updateLiveWalkUI();
+    }
+
+    function updateLiveWalkUI() {
+      const activeBox = document.getElementById('walkActiveBox');
+      const completedBox = document.getElementById('walkCompletedBox');
+      const startBtn = document.getElementById('walkStartBtn');
+      const badge = document.getElementById('walkStatusBadge');
+
+      const wlk = sessionData.walk;
+
+      if (wlk && wlk.active && wlk.startTime) {
+        activeBox.classList.remove('hidden');
+        completedBox.classList.add('hidden');
+        badge.textContent = "Walking Now";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse";
+        startBtn.textContent = "🏁 Finish Walk & Log Burn";
+        startBtn.className = "w-full bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+
+        const elapsedSec = Math.floor((Date.now() - wlk.startTime) / 1000);
+        const m = Math.floor(elapsedSec / 60);
+        const s = elapsedSec % 60;
+        document.getElementById('liveWalkTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const liveKcal = Math.round((elapsedSec / 60) * (userWeight * 0.057));
+        document.getElementById('liveWalkBurn').textContent = `+${liveKcal} kcal burned (Naic stroll)`;
+      } else if (appData.walkCompleted) {
+        activeBox.classList.add('hidden');
+        completedBox.classList.remove('hidden');
+        badge.textContent = `✓ ${appData.walkDurationMinutes}m Walk`;
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
+        startBtn.textContent = "🔄 Start Another Walk";
+        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
+        document.getElementById('walkSummaryText').textContent = `Walk Logged: ${appData.walkDurationMinutes} mins (+${appData.walkKcal} kcal)`;
+      } else {
+        activeBox.classList.add('hidden');
+        completedBox.classList.add('hidden');
+        badge.textContent = "Ready";
+        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
+        startBtn.textContent = "🚶 Start Morning Walk";
+        startBtn.className = "w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
+      }
+    }
+
+    // ----------------------------------------------------
+    // 5. Visual Bodyweight Movement Engine
     // ----------------------------------------------------
     function cycleExercise() {
       currentPoolIndex = (currentPoolIndex + 1) % exercisePool.length;
@@ -973,17 +1238,17 @@
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
 
-      pushUpdate();
+      pushDailyUpdate();
       cycleExercise();
     }
 
     function deleteExerciseLog(id) {
       appData.exerciseLogs = appData.exerciseLogs.filter(e => e.id !== id);
-      pushUpdate();
+      pushDailyUpdate();
     }
 
     // ----------------------------------------------------
-    // 5. 3-in-1 Nutrition Engine with Voice & Fasting Guardrail
+    // 6. 3-in-1 Nutrition Engine with Voice & Guardrail
     // ----------------------------------------------------
     function parseQuantity(text, keyword) {
       const regex = new RegExp(`(\\d+)\\s*(?:pcs|pieces|pc|cups|cup|slices|slice|mugs|mug)?\\s*${keyword}|${keyword}\\s*(\\d+)`, 'i');
@@ -1110,20 +1375,20 @@
       const kcal = parseInt(kcalVal, 10);
 
       // Fasting Guardrail Check
-      if (appData.fastActive && appData.fastStartTime && kcal > 15) {
-        const elapsedSec = Math.floor((Date.now() - appData.fastStartTime) / 1000);
+      if (sessionData.fast.mode === 'fasting' && kcal > 15) {
+        const protocol = fastingProtocols[sessionData.fast.ratio || 16] || fastingProtocols[16];
+        const elapsedSec = Math.floor((Date.now() - sessionData.fast.startTime) / 1000);
         const elapsedH = (elapsedSec / 3600).toFixed(1);
-        const targetH = appData.fastingGoalHours || 15;
 
-        if (elapsedSec < targetH * 3600) {
-          const confirmBreak = confirm(
-            `⚠️ FASTING GUARDRAIL:\n\nYou are currently ${elapsedH} hours into your ${targetH}-hour fast.\n\nLogging this food (${kcal} kcal) will break your fast. Proceed?`
-          );
-          if (!confirmBreak) return;
-          appData.fastActive = false;
-        } else {
-          appData.fastActive = false;
-        }
+        const confirmBreak = confirm(
+          `⚠️ FASTING GUARDRAIL:\n\nYou are currently in your Fasting Window (${elapsedH} hours into a ${protocol.fast}-hr fast).\n\nLogging this food (${kcal} kcal) will break your fast and open your Eating Window. Proceed?`
+        );
+        if (!confirmBreak) return;
+
+        // Switch to eating window automatically
+        sessionData.fast.mode = 'eating';
+        sessionData.fast.startTime = Date.now();
+        pushActiveSessions();
       }
 
       if (!appData.meals) appData.meals = [];
@@ -1137,168 +1402,43 @@
       document.getElementById('mealInput').value = '';
       document.getElementById('mealKcalInput').value = '';
       document.getElementById('mealProteinInput').value = '';
-      pushUpdate();
+      pushDailyUpdate();
     }
 
     function deleteMeal(idx) {
       appData.meals.splice(idx, 1);
-      pushUpdate();
+      pushDailyUpdate();
     }
 
     // ----------------------------------------------------
-    // 6. Live Walk, Sleep & Shift Schedule
+    // 7. Voice Dictation, Schedule & Reminders
     // ----------------------------------------------------
-    function toggleWalkSession() {
-      if (!appData.walkActive) {
-        appData.walkActive = true;
-        appData.walkStartTime = Date.now();
-        appData.walkCompleted = false;
-      } else {
-        const elapsedMs = Date.now() - appData.walkStartTime;
-        const minutes = Math.max(1, Math.round(elapsedMs / 60000));
-        const burned = Math.round(minutes * (userWeight * 0.057));
-
-        appData.walkActive = false;
-        appData.walkDurationMinutes = minutes;
-        appData.walkKcal = burned;
-        appData.walkCompleted = true;
+    function startDictation(targetInputId, callback) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        alert("Speech recognition is not supported on this browser.");
+        return;
       }
-      pushUpdate();
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-PH';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      const micBtn = document.getElementById(targetInputId + 'MicBtn');
+      if (micBtn) micBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
+
+      recognition.onresult = (event) => {
+        document.getElementById(targetInputId).value = event.results[0][0].transcript;
+        if (callback) callback();
+      };
+      recognition.onerror = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
+      recognition.onend = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
+      recognition.start();
     }
 
-    function updateLiveWalkUI() {
-      const activeBox = document.getElementById('walkActiveBox');
-      const completedBox = document.getElementById('walkCompletedBox');
-      const startBtn = document.getElementById('walkStartBtn');
-      const badge = document.getElementById('walkStatusBadge');
-
-      if (appData.walkActive && appData.walkStartTime) {
-        activeBox.classList.remove('hidden');
-        completedBox.classList.add('hidden');
-        badge.textContent = "Walking Now";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 animate-pulse";
-        startBtn.textContent = "🏁 Finish Walk & Log Burn";
-        startBtn.className = "w-full bg-rose-700 hover:bg-rose-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-
-        const elapsedSec = Math.floor((Date.now() - appData.walkStartTime) / 1000);
-        const m = Math.floor(elapsedSec / 60);
-        const s = elapsedSec % 60;
-        document.getElementById('liveWalkTimer').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-        const liveKcal = Math.round((elapsedSec / 60) * (userWeight * 0.057));
-        document.getElementById('liveWalkBurn').textContent = `+${liveKcal} kcal burned (Naic stroll)`;
-      } else if (appData.walkCompleted) {
-        activeBox.classList.add('hidden');
-        completedBox.classList.remove('hidden');
-        badge.textContent = `✓ ${appData.walkDurationMinutes}m Walk`;
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
-        startBtn.textContent = "🔄 Start Another Walk";
-        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
-        document.getElementById('walkSummaryText').textContent = `Walk Logged: ${appData.walkDurationMinutes} mins (+${appData.walkKcal} kcal)`;
-      } else {
-        activeBox.classList.add('hidden');
-        completedBox.classList.add('hidden');
-        badge.textContent = "Ready";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
-        startBtn.textContent = "🚶 Start Morning Walk";
-        startBtn.className = "w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-      }
-    }
-
-    function toggleSleepSession() {
-      if (!appData.sleepActive) {
-        appData.sleepActive = true;
-        appData.sleepStartTime = Date.now();
-        appData.sleepPaused = false;
-        appData.sleepPausedDurationMs = 0;
-        appData.sleepCompleted = false;
-      } else {
-        let totalMs = Date.now() - appData.sleepStartTime;
-        if (appData.sleepPaused && appData.sleepPauseStartTime) {
-          appData.sleepPausedDurationMs += (Date.now() - appData.sleepPauseStartTime);
-        }
-        totalMs -= (appData.sleepPausedDurationMs || 0);
-        const hours = (Math.max(0, totalMs) / (1000 * 3600)).toFixed(1);
-
-        appData.sleepActive = false;
-        appData.sleepPaused = false;
-        appData.sleepDurationHours = parseFloat(hours);
-        appData.sleepCompleted = true;
-      }
-      pushUpdate();
-    }
-
-    function togglePeeBreak() {
-      if (!appData.sleepActive) return;
-      if (!appData.sleepPaused) {
-        appData.sleepPaused = true;
-        appData.sleepPauseStartTime = Date.now();
-      } else {
-        appData.sleepPaused = false;
-        if (appData.sleepPauseStartTime) {
-          appData.sleepPausedDurationMs = (appData.sleepPausedDurationMs || 0) + (Date.now() - appData.sleepPauseStartTime);
-          appData.sleepPauseStartTime = null;
-        }
-      }
-      pushUpdate();
-    }
-
-    function updateLiveSleepUI() {
-      const activeBox = document.getElementById('sleepActiveBox');
-      const completedBox = document.getElementById('sleepCompletedBox');
-      const startBtn = document.getElementById('sleepStartBtn');
-      const peeBtn = document.getElementById('peeBreakBtn');
-      const badge = document.getElementById('sleepStatusBadge');
-
-      if (appData.sleepActive && appData.sleepStartTime) {
-        activeBox.classList.remove('hidden');
-        completedBox.classList.add('hidden');
-        peeBtn.classList.remove('hidden');
-
-        if (appData.sleepPaused) {
-          badge.textContent = "Paused (Pee break)";
-          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800";
-          peeBtn.textContent = "▶️ Back to Bed (Resume Sleep)";
-          peeBtn.className = "w-full bg-amber-800 hover:bg-amber-700 text-white font-bold text-[10px] py-1.5 rounded-lg";
-        } else {
-          badge.textContent = "Sleeping 🌙";
-          badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800 animate-pulse";
-          peeBtn.textContent = "🚽 Pause for Bathroom Break";
-          peeBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] py-1.5 rounded-lg border border-slate-700";
-        }
-
-        startBtn.textContent = "☀️ I'm Awake (Stop Timer)";
-        startBtn.className = "w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-
-        let currentActiveMs = Date.now() - appData.sleepStartTime - (appData.sleepPausedDurationMs || 0);
-        if (appData.sleepPaused && appData.sleepPauseStartTime) {
-          currentActiveMs -= (Date.now() - appData.sleepPauseStartTime);
-        }
-        currentActiveMs = Math.max(0, currentActiveMs);
-
-        const totalMinutes = Math.floor(currentActiveMs / 60000);
-        const h = Math.floor(totalMinutes / 60);
-        const m = totalMinutes % 60;
-        document.getElementById('liveSleepTimer').textContent = `${h}h ${String(m).padStart(2,'0')}m`;
-        const startTimeStr = new Date(appData.sleepStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('sleepStartedAt').textContent = `In bed since ${startTimeStr}`;
-      } else if (appData.sleepCompleted) {
-        activeBox.classList.add('hidden');
-        completedBox.classList.remove('hidden');
-        peeBtn.classList.add('hidden');
-        badge.textContent = `✓ ${appData.sleepDurationHours}h Slept`;
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800";
-        startBtn.textContent = "🛏️ Start New Sleep";
-        startBtn.className = "w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition";
-        document.getElementById('sleepSummaryText').textContent = `Rest Logged: ${appData.sleepDurationHours} hours of sleep`;
-      } else {
-        activeBox.classList.add('hidden');
-        completedBox.classList.add('hidden');
-        peeBtn.classList.add('hidden');
-        badge.textContent = "Ready";
-        badge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400";
-        startBtn.textContent = "🛏️ Going to Sleep";
-        startBtn.className = "w-full bg-indigo-700 hover:bg-indigo-600 text-white font-bold text-xs py-2 rounded-lg transition shadow";
-      }
+    function addWater(amount) {
+      appData.water = (appData.water || 0) + amount;
+      pushDailyUpdate();
     }
 
     function isRestDay(now) {
@@ -1353,42 +1493,11 @@
         } else {
           banner.className = "p-3.5 rounded-xl border text-xs flex items-center justify-between transition-all bg-slate-900 border-slate-800";
           bannerTitle.textContent = "Canadian Work Cycle";
-          bannerSub.textContent = "Shift: 9PM–5AM • Walk: 6AM • Sleep: 7AM–3PM • Eat: 3PM–12AM";
+          bannerSub.textContent = "Shift: 9PM–5AM • Walk: 6AM • Sleep: 7AM–3PM • Flexible Eating";
           bannerBadge.textContent = "Work Day";
           bannerBadge.className = "text-[10px] px-2 py-0.5 rounded font-semibold bg-slate-800 text-slate-400";
         }
       }
-    }
-
-    // ----------------------------------------------------
-    // 7. Voice Dictation & Reminders Engine
-    // ----------------------------------------------------
-    function startDictation(targetInputId, callback) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        alert("Speech recognition is not supported on this browser.");
-        return;
-      }
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'en-PH';
-      recognition.interimResults = false;
-      recognition.maxAlternatives = 1;
-
-      const micBtn = document.getElementById(targetInputId + 'MicBtn');
-      if (micBtn) micBtn.classList.add('bg-rose-600', 'text-white', 'animate-pulse');
-
-      recognition.onresult = (event) => {
-        document.getElementById(targetInputId).value = event.results[0][0].transcript;
-        if (callback) callback();
-      };
-      recognition.onerror = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
-      recognition.onend = () => { if (micBtn) micBtn.classList.remove('bg-rose-600', 'text-white', 'animate-pulse'); };
-      recognition.start();
-    }
-
-    function addWater(amount) {
-      appData.water = (appData.water || 0) + amount;
-      pushUpdate();
     }
 
     function toggleReminderForm() {
@@ -1411,13 +1520,13 @@
       if (!appData.reminders) appData.reminders = [];
       appData.reminders.push({ id: Date.now(), label, type, time, date: type === 'future' ? date : '', note, alertedToday: false });
 
-      pushUpdate();
+      pushDailyUpdate();
       toggleReminderForm();
       document.getElementById('reminderLabelInput').value = '';
     }
     function deleteReminder(id) {
       appData.reminders = appData.reminders.filter(r => r.id !== id);
-      pushUpdate();
+      pushDailyUpdate();
       renderReminders();
     }
     function checkReminders() {
@@ -1432,7 +1541,7 @@
         if (r.time === currentTimeStr && !r.alertedToday) {
           triggerAlarm(r);
           r.alertedToday = true;
-          pushUpdate();
+          pushDailyUpdate();
         }
         if (currentTimeStr === "00:01") r.alertedToday = false;
       });
